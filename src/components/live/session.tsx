@@ -2,14 +2,14 @@
 import { createContext,useContext,useEffect,useState,type FormEvent,type ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { CalendarDays,LayoutDashboard,Users,Wallet,Receipt,LockKeyhole,Stethoscope,ShieldCheck,MessageCircle } from 'lucide-react';
+import { CalendarDays,LayoutDashboard,Users,Wallet,Receipt,LockKeyhole,Stethoscope,ShieldCheck,MessageCircle,BarChart3 } from 'lucide-react';
 export type ClinicScope={clinicId:string;clinicName:string;branchId:string;branchName:string;currency:string;timezone:string;permissions:string[]};
 type Session={scope:ClinicScope;can:(permission:string)=>boolean};
 const SessionContext=createContext<Session|null>(null);
 export function useClinic(){const value=useContext(SessionContext);if(!value)throw new Error('Clinic session is required.');return value;}
 export async function api(url:string,init?:RequestInit){const r=await fetch(url,{cache:'no-store',...init});const data=await r.json();if(!r.ok)throw Object.assign(new Error(data.error?.message||'The request could not be completed.'),{status:r.status,code:data.error?.code});return data;}
 export function scopeHeaders(scope:ClinicScope){return {'x-clinic-id':scope.clinicId,'x-branch-id':scope.branchId,'Content-Type':'application/json'};}
-const nav=[{href:'/clinical',name:'Clinical visits',icon:Stethoscope},{href:'/communications',name:'Communications',icon:MessageCircle},{href:'/',name:'Overview',icon:LayoutDashboard},{href:'/patients',name:'Patients',icon:Users},{href:'/appointments',name:'Appointments',icon:CalendarDays},{href:'/billing',name:'Billing',icon:Wallet},{href:'/expenses',name:'Expenses',icon:Receipt},{href:'/closing',name:'Daily closing',icon:LockKeyhole}];
+const nav=[{href:'/reports',name:'Reports',icon:BarChart3},{href:'/clinical',name:'Clinical visits',icon:Stethoscope},{href:'/communications',name:'Communications',icon:MessageCircle},{href:'/',name:'Overview',icon:LayoutDashboard},{href:'/patients',name:'Patients',icon:Users},{href:'/appointments',name:'Appointments',icon:CalendarDays},{href:'/billing',name:'Billing',icon:Wallet},{href:'/expenses',name:'Expenses',icon:Receipt},{href:'/closing',name:'Daily closing',icon:LockKeyhole}];
 export function ClinicSession({children}:{children:ReactNode}){
  const path=usePathname();const [scopes,setScopes]=useState<ClinicScope[]|null>(null);const [selected,setSelected]=useState('');const [loading,setLoading]=useState(true);const [busy,setBusy]=useState(false);const [error,setError]=useState('');
  useEffect(()=>{const controller=new AbortController();fetch('/api/v1/session',{cache:'no-store',signal:controller.signal}).then(async r=>{const data=await r.json();if(controller.signal.aborted)return;if(r.ok){setScopes(data.scopes);const saved=sessionStorage.getItem('clinic-branch');setSelected(data.scopes.some((s:ClinicScope)=>s.branchId===saved)?saved:data.scopes[0]?.branchId||'');}else if(r.status!==401)setError(data.error?.message||'Unable to load your clinic access.');setLoading(false);}).catch(()=>{if(!controller.signal.aborted){setError('Unable to connect. Reload to try again.');setLoading(false);}});return()=>controller.abort();},[]);

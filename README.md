@@ -9,7 +9,7 @@ Use the Node version in `.node-version` and pnpm 10.12.4.
 ```sh
 corepack enable
 pnpm install --frozen-lockfile
-cp .env.example .env.local
+touch .env.local
 ```
 
 Configure separate restricted runtime and migration database credentials, the Supabase project URL/publishable key, and your exact application origin. Keep `.env.local` private. Follow [the database runbook](docs/runbooks/local-database.md) to start PostgreSQL and prepare roles/migrations. The database must already have an explicitly provisioned, authorized staff membership matching the Supabase Auth identity.
@@ -31,6 +31,7 @@ Use the same hostname as `NEXT_PUBLIC_APP_URL`; write endpoints enforce its Orig
 - Branch appointments with overlap prevention, arrival/cancellation and saved calendar.
 - Reviewed manual charges, partial payments with oldest-first allocation, immutable receipt snapshots, partial refunds and allocation reversals.
 - Paid expense recording, exact PKR amounts, daily totals and append-only records.
+- Financial date-range reports with payments/refunds/paid expenses, daily and payment-method reconciliation.
 - Daily closing drafts, separate staff approval, discrepancy explanation, immutable cash snapshots and closed-day posting guards.
 - WhatsApp template queue, recorded consent, signed/deduplicated webhooks, delivery history, opt-out handling and a separate durable worker. Disabled until Meta is configured.
 
@@ -52,6 +53,6 @@ Database checks use local synthetic fixtures and roll them back. Messaging tests
 
 ## Remaining scope
 
-The full M00–M21 plan is not complete. Treatment plans, clinical templates/alerts, tooth charts, private files, prescriptions/consents, lab/inventory, broader reports, offline recovery, portal/online booking, automatic reminder rules, deployment and real clinic acceptance remain open. See [implementation status](docs/implementation-status.md) and [milestone checklist](docs/milestones.md).
+The full M00–M21 plan is not complete. Treatment plans, clinical templates/alerts, tooth charts, private files, prescriptions/consents, lab/inventory, expanded reports, offline recovery, portal/online booking, automatic reminder rules, deployment and real clinic acceptance remain open. See [implementation status](docs/implementation-status.md) and [milestone checklist](docs/milestones.md).
 
 Historical demo source remains isolated in `src/components/demo` and `src/lib/demo` for reference and rule tests; application routes do not mount it. Do not infer production readiness from pages existing or tests passing.

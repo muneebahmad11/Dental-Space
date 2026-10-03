@@ -141,3 +141,12 @@ Clinical PostgreSQL checks passed for author/version/scope denial, finalization/
 
 
 Final local verification for this increment: lint/TypeScript and production build passed; all 26 unit checks passed; database foundation, patients/appointments/expenses, finance/refunds/closing, messaging and clinical rollback suites passed. Anonymous HTTP checks are run against the restarted preview. GitHub device authorization expired before approval; publishing and remote CI are not yet verified. Account permission grants, signed-in visual journeys, physical printing and live Meta delivery remain pending.
+
+
+## Financial reporting and repository publication — 2026-10-04
+
+GitHub browser authorization completed and the persistent workflow commit was pushed to main; its remote CI passed. The user requested excluding the environment template as well: `.env.example` was removed from the current branch and all `.env*` files are ignored. Real `.env.local` was never tracked.
+
+Added `/reports` and a private financial report API using billing/expense read permissions and a repeatable-read snapshot. Inclusive ranges are capped at 366 days. Saved payments, refunds and paid expenses reconcile by date and payment method with exact integer totals. No patient details or account grants are included. This is recorded money movement, not profit or bank reconciliation. Rollback-only database checks cover totals, method subtotals, empty ranges, branch isolation and revoked access.
+
+Validation: `pnpm check` passed lint, TypeScript, 28 unit tests and production build. `pnpm db:verify-finance` passed with report assertions and rolled back all synthetic records. Browser visual acceptance remains unverified.

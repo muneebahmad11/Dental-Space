@@ -143,3 +143,7 @@ button:focus-visible,a:focus-visible { outline:2px solid #548e69; outline-offset
 .clinical-note-text { white-space:pre-wrap; overflow-wrap:anywhere; margin:8px 0 20px; }
 .staff-workspace details { border-top:1px solid #d7e3e2; padding:16px 0; }
 .staff-workspace summary { cursor:pointer; font-weight:600; }
+
+.financial-reports section { overflow-x:auto; }
+.financial-reports table { width:100%; white-space:nowrap; }
+.financial-reports th:not(:first-child),.financial-reports td { text-align:right; font-variant-numeric:tabular-nums; }

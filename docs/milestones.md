@@ -5,7 +5,7 @@ This tracks implementation against the technical plan; partial milestones are no
 | Milestone | Current evidence and open work |
 |---|---|
 | M00 Decisions | Development PKR/Asia-Karachi defaults only. Clinic rules, recovery/retention and rollout decisions open. |
-| M01 Foundation | Next.js, pinned dependencies, local PostgreSQL, migrations, CI configuration and Git initialization. GitHub push awaits browser authentication. Hosted DB/staging/deployment open. |
+| M01 Foundation | Next.js, pinned dependencies, local PostgreSQL, migrations, CI configuration and Git initialization. Published to GitHub; the initial workflow CI passed. Hosted DB/staging/deployment open. |
 | M02 Identity | Supabase sign-in, scoped memberships/permissions, append-only audit and denial tests. Staff administration/reset/read auditing/production hardening open. |
 | M03 Patients | Durable demographics, search, registration/editing and retries. Clinical history/alerts/duplicate review open. |
 | M04 Scheduling | Durable branch bookings/arrival/cancellation and serialized overlap checks. Resources/hours/week view/rescheduling/history and independent connection races open. |
@@ -14,7 +14,7 @@ This tracks implementation against the technical plan; partial milestones are no
 | M07 Finance | Manual charges, partial payment/allocation, fixed receipts, refunds/reversals, branch isolation and immutable records tested. Treatment links, discounts/tax policy, charge credits, deposits and independent refund/payment race evidence open. |
 | M08 Operations | Paid expenses, closing draft/separate approval, cash refund/payment/expense reconciliation and locked-day guards tested. Cash transfers, unpaid liabilities, reopening policy/approval matrix and attachment workflows open. |
 | M09 Follow-up | Durable follow-ups/recalls/manual history and full timeline open. Communications queue foundation exists. |
-| M10 Reports | Patient/appointment overview counts exist. Financial report catalog, reconciled dashboards and staff/printer acceptance open. |
+| M10 Reports | Patient/appointment overview counts exist. Financial money-movement reports reconcile payments, refunds and paid expenses by date and method. Expanded report catalog, dashboards and staff/printer acceptance open. |
 | M11 Recovery | Backups, measured restore/import and approved offline draft recovery open. |
 | M12 Pilot | Staff training and controlled real clinic pilot acceptance open. |
 | M13 Files | Private storage, upload validation, galleries and generated documents open. |

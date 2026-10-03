@@ -50,3 +50,10 @@ Finalization creates an immutable signed revision. Amendments need a reason and 
 ## Evidence
 
 `pnpm db:verify-finance` tests partial payments, refund limits/reversal, scope denial, snapshots, atomic audit, dual approval and closed-day guards. `pnpm db:verify-visits` tests draft conflicts/authorship, finalization replay, amendments, immutable revisions/projection and revoked clinical access. Both use rollback-only synthetic data. Independent connection race tests, signed-in browser acceptance, printer checks and clinician validation remain release gates.
+
+
+## Financial reports
+
+Open `/reports` to review recorded payments, refunds and paid expenses for the selected branch and an inclusive range of up to 366 days. The endpoint is `GET /api/v1/reports/finance?from=YYYY-MM-DD&to=YYYY-MM-DD`, with the same authenticated scope headers as other staff APIs. Both `billing.read` and `expense.read` are required and rechecked on every request. No new privileges are assigned to existing accounts.
+
+Reports use paid-on business dates and a consistent database snapshot. Daily and payment-method rows reconcile to overall totals using integer paisa. Net movement is payments minus refunds minus paid expenses; it excludes opening cash, charges, unpaid liabilities and transfers. It is not a profit statement or proof that a bank transaction cleared. Refunds are reported on their refund date, not the original payment date. Days without transactions are omitted; an empty range shows zero totals.
