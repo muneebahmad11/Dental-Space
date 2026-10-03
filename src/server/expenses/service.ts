@@ -6,6 +6,8 @@ import { authorize, resolveContext, type Database } from '../auth/context.ts';
 import { expenses } from '../db/schema/expenses.ts';
 import { clinics } from '../db/schema/organization.ts';
 import { auditEvents } from '../db/schema/security.ts';
+import { requireOpenFinancialDay } from '../closing/guard.ts';
+import { businessDate } from '../../lib/finance/contracts.ts';
 import { AppError } from '../http/errors.ts';
 import type { PatientScope } from '../patients/service.ts';
 const scopeSchema = z.object({authUserId:z.uuid(),clinicId:z.uuid(),branchId:z.uuid()});
@@ -20,8 +22,10 @@ export async function recordExpense(db:Database,scope:PatientScope,raw:unknown){
   await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${scope.clinicId+':'+scope.branchId+':expense:'+operationId},0))`);
   const [existing]=await tx.select().from(expenses).where(and(scoped(scope),eq(expenses.operationId,operationId)));
   if(existing){if(existing.payloadHash!==hash)throw new AppError(409,'OPERATION_CONFLICT','This expense key has different details.');return existing;}
-  const [clinic]=await tx.select({currency:clinics.currency}).from(clinics).where(eq(clinics.id,scope.clinicId));
+  const [clinic]=await tx.select({currency:clinics.currency,timezone:clinics.timezone}).from(clinics).where(eq(clinics.id,scope.clinicId));
   if(clinic?.currency!=='PKR')throw new AppError(409,'CURRENCY_UNSUPPORTED','Expense recording currently supports PKR clinics.');
+  if(details.paidOn>businessDate(clinic.timezone))throw new AppError(400,'DATE_FUTURE','A paid expense cannot be dated in the future.');
+  await requireOpenFinancialDay(tx,scope,details.paidOn);
   const [row]=await tx.insert(expenses).values({...details,operationId,amountMinor:amount,currency:clinic.currency,clinicId:scope.clinicId,branchId:scope.branchId,actorMembershipId:c.membershipId,payloadHash:hash}).returning();
   await tx.insert(auditEvents).values({clinicId:scope.clinicId,branchId:scope.branchId,actorMembershipId:c.membershipId,entityId:row.id,entityType:'expense',action:'expense.recorded',requestId:randomUUID()});return row;
  });

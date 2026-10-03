@@ -131,3 +131,15 @@ button:focus-visible,a:focus-visible { outline:2px solid #548e69; outline-offset
 .live-content .stats-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
 @media(max-width:900px) { .live-workspace { display:block; } .live-workspace .sidebar { position:static; width:100%; height:auto; padding:16px; border-right:0; border-bottom:1px solid var(--border); } .live-workspace .clinic-label,.live-workspace .sidebar-note,.live-workspace .nav-label { display:none; } .live-workspace nav { display:flex; overflow-x:auto; gap:4px; margin-top:12px; } .live-workspace .nav-link { flex-shrink:0; padding:10px; margin:0; } .live-workspace .topbar { height:auto; min-height:64px; padding:16px; gap:16px; flex-wrap:wrap; } .live-session-actions { flex-wrap:wrap; } .live-workspace .page-content { padding:24px 16px; } }
 @media(max-width:560px) { .live-content .stats-grid { grid-template-columns:1fr; } .live-session-actions select { max-width:220px; } }
+
+.live-inner>section+section { margin-top:24px; }
+
+.finance-forms { margin:24px 0; }
+.receipt-number { overflow-wrap:anywhere; }
+@media print { .live-workspace .sidebar,.live-workspace .topbar,.print-control { display:none!important; } .live-workspace,.live-workspace .workspace-main { display:block; margin:0; padding:0; } .saved-receipt { border:0!important; } body { background:white; } }
+
+.staff-workspace textarea { padding:12px; border:1px solid #abc2bf; border-radius:8px; background:white; width:100%; min-height:96px; }
+
+.clinical-note-text { white-space:pre-wrap; overflow-wrap:anywhere; margin:8px 0 20px; }
+.staff-workspace details { border-top:1px solid #d7e3e2; padding:16px 0; }
+.staff-workspace summary { cursor:pointer; font-weight:600; }

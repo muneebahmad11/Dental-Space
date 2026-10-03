@@ -42,3 +42,6 @@ jobs:
       - run: pnpm db:prepare-runtime
       - run: pnpm db:verify
       - run: pnpm db:verify-patients
+      - run: pnpm db:verify-messaging
+      - run: pnpm db:verify-finance
+      - run: pnpm db:verify-visits

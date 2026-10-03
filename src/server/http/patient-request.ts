@@ -17,7 +17,7 @@ export function requireSameOrigin(request: Request) {
   catch { throw new AppError(503, 'APP_NOT_CONFIGURED', 'Application origin is not configured.'); }
   if (request.headers.get('origin') !== origin) throw new AppError(403, 'INVALID_ORIGIN', 'Request origin is not allowed.');
 }
-export async function jsonBody(request: Request): Promise<unknown> {
+export async function jsonBody(request: Request, maximumBytes = 16384): Promise<unknown> {
   if (!request.headers.get('content-type')?.toLowerCase().startsWith('application/json')) throw new AppError(415, 'JSON_REQUIRED', 'Send a JSON request.');
   // Bound actual bytes, not just the caller-controlled Content-Length header.
   const reader = request.body?.getReader();
@@ -28,7 +28,7 @@ export async function jsonBody(request: Request): Promise<unknown> {
       const { done, value } = await reader.read();
       if (done) break;
       size += value.byteLength;
-      if (size > 16384) { await reader.cancel(); throw new AppError(413, 'BODY_TOO_LARGE', 'Request body is too large.'); }
+      if (size > maximumBytes) { await reader.cancel(); throw new AppError(413, 'BODY_TOO_LARGE', 'Request body is too large.'); }
       parts.push(value);
     }
     try { return JSON.parse(Buffer.concat(parts).toString('utf8')); }

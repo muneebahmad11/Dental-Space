@@ -1,2 +1,2 @@
-import { PendingWorkflow } from '@/components/live/pending';
-export default function Page(){return <PendingWorkflow title='Receipt' description='Persistent receipts will become available with the payment workflow.'/>;}
+import { SavedReceipt } from '@/components/live/billing';
+export default async function Page({params}:{params:Promise<{receiptId:string}>}){const {receiptId}=await params;return <SavedReceipt key={receiptId} receiptId={receiptId}/>;}

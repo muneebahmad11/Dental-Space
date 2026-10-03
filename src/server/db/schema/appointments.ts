@@ -10,6 +10,7 @@ export const appointments = clinicApp.table('appointments', {
 }, t => [
   foreignKey({ name: 'appointments_branch_scope_fk', columns: [t.clinicId,t.branchId], foreignColumns: [branches.clinicId,branches.id] }),
   foreignKey({ name: 'appointments_patient_scope_fk', columns: [t.clinicId,t.patientId], foreignColumns: [patients.clinicId,patients.id] }),
+  unique('appointments_full_scope_unique').on(t.clinicId,t.branchId,t.patientId,t.id),
   unique('appointments_operation_unique').on(t.clinicId,t.branchId,t.operationId),
   index('appointments_branch_time_idx').on(t.clinicId,t.branchId,t.startsAt),
   check('appointments_time_order',sql`${t.endsAt} > ${t.startsAt} and ${t.endsAt} <= ${t.startsAt} + interval '8 hours'`),

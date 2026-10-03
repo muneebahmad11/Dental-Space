@@ -22,6 +22,7 @@ const status = (expected: number) => (error: unknown) => error instanceof AppErr
 try {
   try {
     await drizzle(client).transaction(async tx => {
+ await tx.execute(sql`select pg_advisory_xact_lock(73492009)`);
       const [clinic] = await tx.insert(clinics).values({ name: 'Synthetic service checks', currency: 'PKR', timezone: 'Asia/Karachi' }).returning();
       const [branch] = await tx.insert(branches).values({ clinicId: clinic.id, name: 'Test branch' }).returning();
       const [otherClinic] = await tx.insert(clinics).values({ name: 'Other synthetic clinic', currency: 'PKR', timezone: 'Asia/Karachi' }).returning();
@@ -116,7 +117,7 @@ try {
       await tx.execute(sql`reset role`);
       await tx.insert(membershipGrants).values(['expense.read','expense.write'].map(permission=>({clinicId:clinic.id,membershipId:member.id,permission})));
       await tx.execute(sql`set local role clinic_runtime`);
-      const expenseInput={operationId:randomUUID(),paidOn:'2026-10-04',description:'Synthetic supplies',category:'Supplies',method:'Cash',amount:'12.30'};
+      const expenseInput={operationId:randomUUID(),paidOn:'2026-01-01',description:'Synthetic supplies',category:'Supplies',method:'Cash',amount:'12.30'};
       const expense=await recordExpense(tx,scope,expenseInput);
       assert.equal(expense.amountMinor,1230);
       assert.equal((await recordExpense(tx,scope,expenseInput)).id,expense.id);
@@ -124,7 +125,7 @@ try {
       const ledger=await listExpenses(tx,scope,{paidOn:expenseInput.paidOn});
       assert.equal(ledger.count,1);assert.equal(ledger.totalMinor,'1230');assert.equal(ledger.cashMinor,'1230');
       assert.equal((await listAuditEvents(tx,scope)).filter(e=>e.entityType==='expense').length,1);
-      assert.equal((await listExpenses(tx,scope,{paidOn:'2026-10-05'})).count,0);
+      assert.equal((await listExpenses(tx,scope,{paidOn:'2026-01-02'})).count,0);
       await assert.rejects(listExpenses(tx,otherScope,{paidOn:expenseInput.paidOn}),status(403));
       await tx.execute(sql`reset role`);
       const [secondBranch]=await tx.insert(branches).values({clinicId:clinic.id,name:'Second synthetic branch'}).returning();

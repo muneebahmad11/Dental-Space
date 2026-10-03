@@ -3,3 +3,7 @@ export * from './security.ts';
 export * from './patients.ts';
 export * from './appointments.ts';
 export * from './expenses.ts';
+export * from './communications.ts';
+export * from './finance.ts';
+export * from './closing.ts';
+export * from './visits.ts';

@@ -1,2 +1,2 @@
-import { PendingWorkflow } from '@/components/live/pending';
-export default function Page(){return <PendingWorkflow title='Patient visit' description='Persistent clinical notes and authorized visit finalization are still being built.'/>;}
+import { ClinicalVisit } from '@/components/live/visits';
+export default async function Page({params}:{params:Promise<{visitId:string}>}){const {visitId}=await params;return <ClinicalVisit key={visitId} visitId={visitId}/>;}

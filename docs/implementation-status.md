@@ -117,3 +117,27 @@ Appointment permissions have not been added to the initial user; the calendar sh
 - `scripts/grant-local-expenses.ts` is prepared for explicit approval of local expense.read/write access; it has not been run.
 - Rollback-only integration checks cover exact amounts, replay conflicts, branch/clinic separation, permission denial, audit rollback and immutable rows. Unit validation runs in `pnpm check` and therefore CI.
 - App records remain in local PostgreSQL; Supabase provides staff authentication. Billing and clinical workflows still need persistent implementations. Browser visual checks remain unavailable due to the previously reported URL-policy rejection.
+
+
+## Repository, WhatsApp and persistent finance — 2026-10-04
+
+Initialized Git on main and connected origin to `muneebahmad11/Dental-Space`. The baseline commit is local; initial push failed because existing Git credentials were invalid. GitHub CLI browser authorization is pending. No credentials/local database files are tracked.
+
+Added Meta Cloud API template sending, staff-recorded consent, scoped durable jobs, worker leases/attempt history, fresh authorization/phone/consent/template/appointment rechecks, bounded rate-limit retries, review for ambiguous sends, signed webhooks, account/phone binding, delivery receipt deduplication, monotonic delivery and patient opt-out suppression. A Communications screen manages preferences, configured templates, schedule times, message status and cancellation. Meta remains disabled by default; user will configure the account later. Live messages/HTTPS callbacks remain unverified.
+
+Replaced pending Billing/Accounts/Receipts routes with saved manual charges, partial payments, oldest-first allocations, overpayment guards, immutable receipt snapshots, partial refunds/allocation reversals and printable refund confirmations. Currency is PKR; this records payments/returns and does not perform bank/card collection. Added daily closing drafts, fresh cash/refund/expense reconciliation, variance notes, separate staff approval and immutable snapshots; approved business days reject new payments/refunds/paid expenses. Closing and posting use the same transaction advisory lock. Existing operation replays still return their prior result after closing.
+
+Rollback-only PostgreSQL evidence covers authorization/scope isolation, retries/conflicts, exact balances, refund limits, immutable snapshots, audit-failure rollback, dual approval, changed cash totals and closed-day guards. Messaging unit/integration tests never use a real provider. All new permission definitions are separate from actual account grants; no initial-user privileges were expanded.
+
+Manual charge credits/deposits/treatment links, clinical workflows, files/lab/inventory, full reports, offline/recovery, portal and automated reminder rules remain open in `milestones.md`. Generated migration 0011 was corrected before successful application to create its referenced unique key before the refund FK. Visual acceptance remains blocked by the previously reported preview URL policy.
+
+
+## Durable clinical visits — 2026-10-04
+
+Added saved walk-in/arrived-appointment visits, note editing with expected versions, clinician-author checks, immutable final revisions and reasoned signed amendments. Patient clinical read permission is required independently from demographics; no clinical signing access was granted to the initial user. `/clinical` lists branch visits and starts walk-in drafts; `/visits/:id` edits or reviews notes and signed revision history. Complaint, assessment and treatment text must be completed before signing; field policy still needs clinic/dentist acceptance. Draft saving is explicit, with no claim of offline recovery/autosave. Templates, alerts/chart, treatment plans and appointment completion links remain open.
+
+
+Clinical PostgreSQL checks passed for author/version/scope denial, finalization/amendment replay, preservation of the original note, atomic audit failure rollback, revoked clinical read and immutable signed projection. Migrations 0012–0014 protect webhook receipt metadata, visit authorship and scoped appointment references. `scripts/grant-local-access.ts` prepares precise audited local grants only after approval; it has not been run.
+
+
+Final local verification for this increment: lint/TypeScript and production build passed; all 26 unit checks passed; database foundation, patients/appointments/expenses, finance/refunds/closing, messaging and clinical rollback suites passed. Anonymous HTTP checks are run against the restarted preview. GitHub device authorization expired before approval; publishing and remote CI are not yet verified. Account permission grants, signed-in visual journeys, physical printing and live Meta delivery remain pending.
