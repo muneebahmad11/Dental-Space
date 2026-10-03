@@ -57,3 +57,16 @@ Finalization creates an immutable signed revision. Amendments need a reason and 
 Open `/reports` to review recorded payments, refunds and paid expenses for the selected branch and an inclusive range of up to 366 days. The endpoint is `GET /api/v1/reports/finance?from=YYYY-MM-DD&to=YYYY-MM-DD`, with the same authenticated scope headers as other staff APIs. Both `billing.read` and `expense.read` are required and rechecked on every request. No new privileges are assigned to existing accounts.
 
 Reports use paid-on business dates and a consistent database snapshot. Daily and payment-method rows reconcile to overall totals using integer paisa. Net movement is payments minus refunds minus paid expenses; it excludes opening cash, charges, unpaid liabilities and transfers. It is not a profit statement or proof that a bank transaction cleared. Refunds are reported on their refund date, not the original payment date. Days without transactions are omitted; an empty range shows zero totals.
+
+
+## Treatment estimates
+
+`/plans` lists the latest 50 branch plans, creates estimates, saves new estimate versions and records patient/representative acceptance of the current saved version. Each item has a stable ID, description, optional tooth/site, integer quantity (1–100) and unit price in PKR; quantities and totals use integer paisa. Maximum 100 items per estimate. Earlier saved versions remain visible (latest 100).
+
+Reading requires `patient.demographics.read`, `patient.clinical.read` and `plan.read`. Creating/revising additionally requires `plan.write`; acceptance additionally requires `plan.accept`. These permission definitions are installed without granting any actual account access. Provision only after explicit authorization. Acceptance records staff identity, patient/representative name, evidence text and timestamp. It records agreement to an estimate, not a clinical consent signature.
+
+API routes: GET/POST `/api/v1/plans`, GET/PATCH `/api/v1/plans/:id`, POST `/api/v1/plans/:id/accept`. Writes require same-origin requests and stable UUID operation IDs. Save and acceptance require the expected current version. Changes from another operator return a conflict; reload before proceeding. Unsaved changes disable the acceptance action. Every mutation and its audit record commit together.
+
+Accepted plans cannot be edited or returned to draft; estimate versions and acceptance records reject updates/deletes/truncation at the database layer. New proposed work needs a separate plan in this slice. Accepting a plan does not post charges, mark treatment completed or create appointments. Completion tracking, superseding accepted estimates and billing links remain open.
+
+`pnpm db:verify-plans` uses synthetic rollback-only records to verify exact totals, version preservation, scope denial, replay/conflict behavior, audit rollback, acceptance immutability and revoked access. No real patient estimate or permission grant is created by the check.

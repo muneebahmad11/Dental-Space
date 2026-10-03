@@ -10,7 +10,7 @@ This tracks implementation against the technical plan; partial milestones are no
 | M03 Patients | Durable demographics, search, registration/editing and retries. Clinical history/alerts/duplicate review open. |
 | M04 Scheduling | Durable branch bookings/arrival/cancellation and serialized overlap checks. Resources/hours/week view/rescheduling/history and independent connection races open. |
 | M05 Clinical | Durable draft/final revision/amendment workflow implemented with author permissions and immutable revisions; templates, chart/alerts, scheduling completion links and clinician acceptance remain open. |
-| M06 Plans | Durable items/accepted estimate versions and remaining-work workflow open. |
+| M06 Plans | Durable treatment-item estimates, immutable saved versions and version-bound patient acceptance implemented. Completion/remaining-work tracking, accepted-plan revisions and billing links open. |
 | M07 Finance | Manual charges, partial payment/allocation, fixed receipts, refunds/reversals, branch isolation and immutable records tested. Treatment links, discounts/tax policy, charge credits, deposits and independent refund/payment race evidence open. |
 | M08 Operations | Paid expenses, closing draft/separate approval, cash refund/payment/expense reconciliation and locked-day guards tested. Cash transfers, unpaid liabilities, reopening policy/approval matrix and attachment workflows open. |
 | M09 Follow-up | Durable follow-ups/recalls/manual history and full timeline open. Communications queue foundation exists. |

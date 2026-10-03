@@ -45,3 +45,4 @@ jobs:
       - run: pnpm db:verify-messaging
       - run: pnpm db:verify-finance
       - run: pnpm db:verify-visits
+      - run: pnpm db:verify-plans

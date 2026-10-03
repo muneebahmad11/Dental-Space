@@ -150,3 +150,12 @@ GitHub browser authorization completed and the persistent workflow commit was pu
 Added `/reports` and a private financial report API using billing/expense read permissions and a repeatable-read snapshot. Inclusive ranges are capped at 366 days. Saved payments, refunds and paid expenses reconcile by date and payment method with exact integer totals. No patient details or account grants are included. This is recorded money movement, not profit or bank reconciliation. Rollback-only database checks cover totals, method subtotals, empty ranges, branch isolation and revoked access.
 
 Validation: `pnpm check` passed lint, TypeScript, 28 unit tests and production build. `pnpm db:verify-finance` passed with report assertions and rolled back all synthetic records. Browser visual acceptance remains unverified.
+
+
+## Treatment plans and accepted estimate versions — 2026-10-04
+
+Added branch-scoped treatment plans with stable item IDs, optional tooth/site, integer quantities and exact PKR pricing. Create/save writes preserve immutable estimate snapshots. Acceptance binds to the current version and records staff identity plus named patient/representative agreement evidence. Accepted plans are locked at the service and database layers. Draft changes have optimistic version checks; operation retries retain their original results. All writes are audited transactionally. Migrations define plan read/write/accept privileges without assigning any actual account grants.
+
+Added the `/plans` editor/history and private authenticated APIs. Rollback-only database checks passed for exact totals, branch/clinic isolation, stale versions, idempotent requests, immutable acceptance, audit failure rollback and permission revocation. Treatment completion, remaining-work projection, superseding accepted estimates and billing links remain open. The financial reporting commit's GitHub CI passed.
+
+Validation: `pnpm check` passed lint, TypeScript, 30 unit tests and production build; `pnpm db:verify` and `pnpm db:verify-plans` passed. Browser visual acceptance remains unverified.

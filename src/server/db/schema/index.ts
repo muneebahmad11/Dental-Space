@@ -7,3 +7,4 @@ export * from './communications.ts';
 export * from './finance.ts';
 export * from './closing.ts';
 export * from './visits.ts';
+export * from './plans.ts';
