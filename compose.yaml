@@ -1,0 +1,19 @@
+# Optional local-only PostgreSQL. No Supabase Auth/Storage emulation.
+services:
+  db:
+    image: postgres:17.6-alpine
+    environment:
+      POSTGRES_USER: clinic_migrator
+      POSTGRES_PASSWORD: dental_local_migration_only
+      POSTGRES_DB: dental_local
+    ports:
+      - "127.0.0.1:54329:5432"
+    volumes:
+      - dental_local_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U clinic_migrator -d dental_local"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+volumes:
+  dental_local_pg:

@@ -1,0 +1,2 @@
+import Link from 'next/link';
+export function PendingWorkflow({title,description}:{title:string;description:string}){return <><div className="page-heading"><div><p className="eyebrow">Clinic workspace</p><h1>{title}</h1></div></div><section className="panel empty-state"><h3>This workflow is being connected</h3><p>{description}</p><Link href="/patients" className="text-button">Open saved patients →</Link></section></>;}

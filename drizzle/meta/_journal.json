@@ -1,0 +1,55 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1790805534582,
+      "tag": "0000_striped_pestilence",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790805550856,
+      "tag": "0001_runtime_privileges",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790805988117,
+      "tag": "0002_bizarre_the_liberteens",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790805988494,
+      "tag": "0003_security_patient_privileges",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790806914576,
+      "tag": "0004_large_hiroim",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790874467984,
+      "tag": "0005_dizzy_old_lace",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791067078407,
+      "tag": "0006_narrow_tomas",
+      "breakpoints": true
+    }
+  ]
+}
