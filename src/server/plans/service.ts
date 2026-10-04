@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { acceptPlanInput,createPlanInput,planSnapshot,savePlanInput } from '../../lib/plans/contracts.ts';
 import { authorize,resolveContext,type Database } from '../auth/context.ts';
 import { clinics } from '../db/schema/organization.ts';
-import { treatmentPlans,planVersions,planAcceptances } from '../db/schema/plans.ts';
+import { treatmentPlans,planVersions,planAcceptances,treatmentCompletions,treatmentChargeLinks } from '../db/schema/plans.ts';
 import { patients } from '../db/schema/patients.ts';
 import { auditEvents } from '../db/schema/security.ts';
 import { AppError } from '../http/errors.ts';
@@ -35,7 +35,9 @@ export async function readPlan(db:Database,s:PatientScope,id:string){parse(z.uui
  const c=await context(tx,s);const [row]=await tx.select({plan:treatmentPlans,patientName:patients.name}).from(treatmentPlans).innerJoin(patients,and(eq(patients.id,treatmentPlans.patientId),eq(patients.clinicId,treatmentPlans.clinicId))).where(and(scoped(s),eq(treatmentPlans.id,id)));if(!row)throw new AppError(404,'PLAN_NOT_FOUND','Plan is not available in this branch.');
  const versions=await tx.select().from(planVersions).where(and(eq(planVersions.clinicId,s.clinicId),eq(planVersions.branchId,s.branchId),eq(planVersions.planId,id))).orderBy(desc(planVersions.version)).limit(100);
  const [acceptance]=await tx.select().from(planAcceptances).where(and(eq(planAcceptances.clinicId,s.clinicId),eq(planAcceptances.branchId,s.branchId),eq(planAcceptances.planId,id)));
- return {...row,versions,acceptance:acceptance??null,canWrite:c.permissions.has('plan.write'),canAccept:c.permissions.has('plan.accept')};
+ const completions=await tx.select({id:treatmentCompletions.id,itemId:treatmentCompletions.itemId,quantity:treatmentCompletions.quantity,performedOn:treatmentCompletions.performedOn,note:treatmentCompletions.note,chargeId:treatmentChargeLinks.chargeId}).from(treatmentCompletions).leftJoin(treatmentChargeLinks,eq(treatmentChargeLinks.completionId,treatmentCompletions.id)).where(and(eq(treatmentCompletions.clinicId,s.clinicId),eq(treatmentCompletions.branchId,s.branchId),eq(treatmentCompletions.planId,id))).orderBy(desc(treatmentCompletions.createdAt),desc(treatmentCompletions.id)).limit(100);
+ const progress=await tx.select({itemId:treatmentCompletions.itemId,completed:sql<number>`sum(${treatmentCompletions.quantity})::integer`,billed:sql<number>`coalesce(sum(${treatmentCompletions.quantity}) filter (where ${treatmentChargeLinks.id} is not null),0)::integer`}).from(treatmentCompletions).leftJoin(treatmentChargeLinks,eq(treatmentChargeLinks.completionId,treatmentCompletions.id)).where(and(eq(treatmentCompletions.clinicId,s.clinicId),eq(treatmentCompletions.branchId,s.branchId),eq(treatmentCompletions.planId,id))).groupBy(treatmentCompletions.itemId);
+ return {...row,versions,completions,progress,canComplete:c.permissions.has('plan.complete'),canBill:c.permissions.has('charge.post'),acceptance:acceptance??null,canWrite:c.permissions.has('plan.write'),canAccept:c.permissions.has('plan.accept')};
  },{isolationLevel:'repeatable read'});}
 export async function savePlan(db:Database,s:PatientScope,id:string,raw:unknown){parse(z.uuid(),id);const input=parse(savePlanInput,raw);const digest=hash({id,...input});return db.transaction(async tx=>{
  const c=await context(tx,s,'plan.write');await operationLock(tx,s,input.operationId);

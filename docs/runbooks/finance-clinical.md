@@ -67,6 +67,15 @@ Reading requires `patient.demographics.read`, `patient.clinical.read` and `plan.
 
 API routes: GET/POST `/api/v1/plans`, GET/PATCH `/api/v1/plans/:id`, POST `/api/v1/plans/:id/accept`. Writes require same-origin requests and stable UUID operation IDs. Save and acceptance require the expected current version. Changes from another operator return a conflict; reload before proceeding. Unsaved changes disable the acceptance action. Every mutation and its audit record commit together.
 
-Accepted plans cannot be edited or returned to draft; estimate versions and acceptance records reject updates/deletes/truncation at the database layer. New proposed work needs a separate plan in this slice. Accepting a plan does not post charges, mark treatment completed or create appointments. Completion tracking, superseding accepted estimates and billing links remain open.
+Accepted plans cannot be edited or returned to draft; estimate versions and acceptance records reject updates/deletes/truncation at the database layer. New proposed work needs a separate plan in this slice. Accepting a plan does not post charges, mark treatment completed or create appointments. Partial completion and billing links are described below; corrections and superseding accepted estimates remain open.
 
 `pnpm db:verify-plans` uses synthetic rollback-only records to verify exact totals, version preservation, scope denial, replay/conflict behavior, audit rollback, acceptance immutability and revoked access. No real patient estimate or permission grant is created by the check.
+
+
+## Completed treatment and linked charges
+
+For accepted plans, `/plans` shows agreed, completed, remaining and charged units. Recording performed work requires `plan.complete` plus the existing plan/clinical/demographic read permissions. Choose quantity, performed date and a completion note. Future dates, items outside the accepted estimate and quantities above remaining work are rejected. Each completion must fit the current per-charge limit (PKR 999,999.99); record smaller quantities when necessary. Actual clinical documentation still belongs in the clinical visit workflow. No real account receives this permission automatically.
+
+Posting a charge is a separate action requiring `charge.post` plus plan/clinical/demographic read permissions. The amount is calculated from accepted unit price times completed quantity; callers cannot override prices. It uses the existing account lock, audited charge posting and current financial-day closing guard. Charge and treatment link commit together. Replaying the same operation returns the original result; a different operation cannot charge the same completion again. Account payment/refund workflows remain unchanged.
+
+Endpoints: POST `/api/v1/plans/:id/completions` and POST `/api/v1/treatments/:id/charge`. Completion requires `operationId`, `expectedVersion`, `itemId`, `quantity`, `performedOn`, `note`; charging requires `operationId`. Completion and link records are append-only. Aggregate progress includes all records; detail displays the latest 100 completions. Manual charges can still be posted independently, so staff must reconcile them before using linked charging for the same work. Corrections/reversals, clinical-visit linkage and separate-connection race acceptance remain open.

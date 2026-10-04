@@ -9,3 +9,5 @@ export function planSnapshot(body:z.output<typeof planBodyInput>):PlanSnapshot{
  const items=body.items.map(item=>({id:item.id,description:item.description,tooth:item.tooth,quantity:item.quantity,unitPriceMinor:item.unitPrice,totalMinor:(BigInt(item.unitPrice)*BigInt(item.quantity)).toString()}));
  return {title:body.title,note:body.note,currency:'PKR',items,totalMinor:items.reduce((sum,item)=>sum+BigInt(item.totalMinor),BigInt(0)).toString()};
 }
+export const completeItemInput=z.object({operationId:z.uuid(),expectedVersion:z.number().int().positive(),itemId:z.uuid(),quantity:z.number().int().min(1).max(100),performedOn:z.iso.date(),note:z.string().trim().min(3).max(1000)}).strict();
+export const billCompletionInput=z.object({operationId:z.uuid()}).strict();

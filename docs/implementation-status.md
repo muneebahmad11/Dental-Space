@@ -159,3 +159,12 @@ Added branch-scoped treatment plans with stable item IDs, optional tooth/site, i
 Added the `/plans` editor/history and private authenticated APIs. Rollback-only database checks passed for exact totals, branch/clinic isolation, stale versions, idempotent requests, immutable acceptance, audit failure rollback and permission revocation. Treatment completion, remaining-work projection, superseding accepted estimates and billing links remain open. The financial reporting commit's GitHub CI passed.
 
 Validation: `pnpm check` passed lint, TypeScript, 30 unit tests and production build; `pnpm db:verify` and `pnpm db:verify-plans` passed. Browser visual acceptance remains unverified.
+
+
+## Treatment progress and accepted-price billing — 2026-10-05
+
+Completed the interrupted treatment workflow: immutable partial completion records, remaining quantities, accepted-estimate item/version binding and separate linked charge posting. Completion requires plan.complete; billing requires charge.post. Both require scoped clinical/plan/demographic reads. No actual account privileges were changed. Database guards prevent over-completion and reject links with amounts different from accepted quantity pricing. Charge/link/audit writes share an outer transaction and preserve existing closed-day billing guards.
+
+Local rollback-only plan tests passed for partial progress, exact locked-price charges, duplicate and excess-quantity rejection, branch isolation, audit rollback and revoked access. Completion corrections, clinical-visit linkage and independent-connection concurrency evidence remain open.
+
+Validation: lint, TypeScript, 31 unit tests and production build passed. Expanded rollback-only plan checks also verify direct database rejection of excessive quantities and incorrect linked prices. Browser visual acceptance remains unverified.

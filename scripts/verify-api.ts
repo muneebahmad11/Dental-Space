@@ -14,3 +14,10 @@ const rejected = await fetch(`${base}/api/v1/patients`, { method: 'POST', header
 assert.equal(rejected.status, 403);
 assert.equal((await rejected.json()).error.code, 'INVALID_ORIGIN');
 console.log('Anonymous local API checks passed: no record disclosure, private responses and foreign-origin mutation denial.');
+
+for (const path of ['/api/v1/plans/00000000-0000-4000-8000-000000000001/completions','/api/v1/treatments/00000000-0000-4000-8000-000000000001/charge']) {
+  const result=await fetch(`${base}${path}`,{method:'POST',headers:{origin:base,'content-type':'application/json'},body:'{}'});
+  assert.equal(result.status,configured?401:503);assert.match(result.headers.get('cache-control')||'',/no-store/);
+  const foreign=await fetch(`${base}${path}`,{method:'POST',headers:{origin:'https://untrusted.invalid','content-type':'application/json'},body:'{}'});assert.equal(foreign.status,403);assert.equal((await foreign.json()).error.code,'INVALID_ORIGIN');
+}
+console.log('Treatment mutation API checks passed: anonymous and foreign-origin requests denied.');

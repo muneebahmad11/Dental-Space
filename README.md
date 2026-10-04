@@ -29,6 +29,7 @@ Use the same hostname as `NEXT_PUBLIC_APP_URL`; write endpoints enforce its Orig
 - Patient demographics, registration/search/editing, version checks and retry protection.
 - Clinical visit drafts, author-only signing, immutable revisions and signed amendments.
 - Treatment items, exact quantity-based PKR estimates, preserved estimate versions and immutable acceptance records.
+- Partial treatment completion, remaining quantities and one charge per completion at accepted prices.
 - Branch appointments with overlap prevention, arrival/cancellation and saved calendar.
 - Reviewed manual charges, partial payments with oldest-first allocation, immutable receipt snapshots, partial refunds and allocation reversals.
 - Paid expense recording, exact PKR amounts, daily totals and append-only records.
@@ -55,6 +56,6 @@ Database checks use local synthetic fixtures and roll them back. Messaging tests
 
 ## Remaining scope
 
-The full M00–M21 plan is not complete. Treatment completion and billing links, clinical templates/alerts, tooth charts, private files, prescriptions/consents, lab/inventory, expanded reports, offline recovery, portal/online booking, automatic reminder rules, deployment and real clinic acceptance remain open. See [implementation status](docs/implementation-status.md) and [milestone checklist](docs/milestones.md).
+The full M00–M21 plan is not complete. Treatment corrections and accepted-plan revisions, clinical templates/alerts, tooth charts, private files, prescriptions/consents, lab/inventory, expanded reports, offline recovery, portal/online booking, automatic reminder rules, deployment and real clinic acceptance remain open. See [implementation status](docs/implementation-status.md) and [milestone checklist](docs/milestones.md).
 
 Historical demo source remains isolated in `src/components/demo` and `src/lib/demo` for reference and rule tests; application routes do not mount it. Do not infer production readiness from pages existing or tests passing.
