@@ -11,7 +11,7 @@ type Dentist={id:string;name:string;color:string;active:boolean};
 type Chair={id:string;name:string;active:boolean};
 type Settings={timezone:string;today:string;dentists:Dentist[];chairs:Chair[];hours:{slotMinutes:number;weeklyHours:WeeklyHours}|null;closures:{closedOn:string;reason:string}[]};
 type Procedure={id:string;name:string;defaultMinutes:number};
-type Draft={kind:'book';date:string;time:string;dentistId:string}|{kind:'walk_in'};
+type Draft={kind:'book';date:string;time:string;dentistId:string;patientId?:string}|{kind:'walk_in';patientId?:string};
 const actionLabels:Partial<Record<AppointmentStatus,string>>={confirmed:'Confirm',arrived:'Mark arrived',waiting:'Move to waiting',in_treatment:'Start treatment',completed:'Mark completed',cancelled:'Cancel booking',no_show:'Mark no-show'};
 const pxPerMinute=1.6;
 // One operation key per unchanged request, so an ambiguous network failure can be retried without double booking.
@@ -26,12 +26,12 @@ function useCommand(){
  }
  return {busy,error,setError,send};
 }
-export function Calendar(){
+export function Calendar({start='',patientId=''}:{start?:''|'book'|'walk_in';patientId?:string}){
  const {scope,can}=useClinic();const canWrite=can('appointment.write');
  const [settings,setSettings]=useState<Settings|null>(null);const [procedures,setProcedures]=useState<Procedure[]>([]);const [rows,setRows]=useState<Appointment[]|null>(null);
  const [view,setView]=useState<'day'|'week'>('day');const [date,setDate]=useState('');const [dentistFilter,setDentistFilter]=useState('');
- const [selected,setSelected]=useState('');const [draft,setDraft]=useState<Draft|null>(null);const [revision,setRevision]=useState(0);const [error,setError]=useState('');const [notice,setNotice]=useState('');
- useEffect(()=>{const c=new AbortController();Promise.all([api('/api/v1/schedule/settings',{headers:scopeHeaders(scope),signal:c.signal}),api('/api/v1/procedures',{headers:scopeHeaders(scope),signal:c.signal})]).then(([s,p])=>{if(c.signal.aborted)return;setSettings(s);setProcedures(p.items);setDate(d=>d||s.today);}).catch(e=>{if(!c.signal.aborted)setError(e.message);});return()=>c.abort();},[scope]);
+ const [selected,setSelected]=useState('');const [draft,setDraft]=useState<Draft|null>(start==='walk_in'?{kind:'walk_in',patientId}:start==='book'?{kind:'book',date:'',time:'',dentistId:'',patientId}:null);const [revision,setRevision]=useState(0);const [error,setError]=useState('');const [notice,setNotice]=useState('');
+ useEffect(()=>{const c=new AbortController();Promise.all([api('/api/v1/schedule/settings',{headers:scopeHeaders(scope),signal:c.signal}),api('/api/v1/procedures',{headers:scopeHeaders(scope),signal:c.signal})]).then(([s,p])=>{if(c.signal.aborted)return;setSettings(s);setProcedures(p.items);setDate(d=>d||s.today);setDraft(d=>d?.kind==='book'&&!d.date?{...d,date:s.today}:d);}).catch(e=>{if(!c.signal.aborted)setError(e.message);});return()=>c.abort();},[scope]);
  const timezone=settings?.timezone??scope.timezone;const from=view==='day'?date:date&&weekStart(date);const days=view==='day'?1:7;
  useEffect(()=>{if(!date)return;const c=new AbortController();const query=new URLSearchParams({startsAt:zonedInstant(timezone,from,'00:00').toISOString(),endsAt:zonedInstant(timezone,addDays(from,days),'00:00').toISOString(),...(dentistFilter?{dentistId:dentistFilter}:{})});api(`/api/v1/appointments?${query}`,{headers:scopeHeaders(scope),signal:c.signal}).then(d=>{if(!c.signal.aborted){setRows(d.appointments);setError('');}}).catch(e=>{if(!c.signal.aborted)setError(e.message);});return()=>c.abort();},[scope,timezone,from,days,dentistFilter,date,revision]);
  const refresh=(message='')=>{setNotice(message);setRevision(n=>n+1);};
@@ -54,8 +54,8 @@ export function Calendar(){
   <div className={`cal-layout ${current||draft?'with-panel':''}`}>
    <div className="cal-main">{!rows?<p role="status">Loading appointments…</p>:view==='day'?<DayGrid date={date} settings={settings} rows={rows} dentists={dentistFilter?activeDentists.filter(d=>d.id===dentistFilter):activeDentists} selected={selected} onSelect={id=>{setDraft(null);setSelected(id);}} onSlot={canWrite?(time,dentistId)=>{setSelected('');setDraft({kind:'book',date,time,dentistId});}:undefined}/>:<WeekView from={from} timezone={timezone} rows={rows} closures={settings.closures} onSelect={id=>{setDraft(null);setSelected(id);}} onDay={d=>{setRows(null);setView('day');setDate(d);}}/>}</div>
    {(current||draft)&&<aside className="cal-panel">
-    {draft?.kind==='book'&&<BookingForm key={`${draft.date}${draft.time}${draft.dentistId}`} draft={draft} settings={settings} procedures={procedures} onClose={()=>setDraft(null)} onSaved={(id,message)=>{setDraft(null);setSelected(id);refresh(message);}}/>}
-    {draft?.kind==='walk_in'&&<WalkInForm settings={settings} procedures={procedures} onClose={()=>setDraft(null)} onSaved={id=>{setDraft(null);setDate(settings.today);setView('day');setSelected(id);refresh('Walk-in recorded as arrived.');}}/>}
+    {draft?.kind==='book'&&<BookingForm key={`${draft.date}${draft.time}${draft.dentistId}`} draft={draft} patientId={draft.patientId} settings={settings} procedures={procedures} onClose={()=>setDraft(null)} onSaved={(id,message)=>{setDraft(null);setSelected(id);refresh(message);}}/>}
+    {draft?.kind==='walk_in'&&<WalkInForm patientId={draft.patientId} settings={settings} procedures={procedures} onClose={()=>setDraft(null)} onSaved={id=>{setDraft(null);setDate(settings.today);setView('day');setSelected(id);refresh('Walk-in recorded as arrived.');}}/>}
     {current&&!draft&&<AppointmentPanel key={`${current.id}:${current.version}`} row={current} settings={settings} procedures={procedures} onClose={()=>setSelected('')} onChanged={message=>refresh(message)}/>}
    </aside>}
   </div>
@@ -90,6 +90,12 @@ function WeekView({from,timezone,rows,closures,onSelect,onDay}:{from:string;time
   return <div key={d} className="cal-week-day"><button type="button" className="cal-week-head" onClick={()=>onDay(d)}><strong>{weekdayLabels[localParts('UTC',new Date(`${d}T12:00:00Z`)).weekday].slice(0,3)} {d.slice(8)}</strong><span>{active} booked</span></button>{closure&&<p className="cal-closed">Closed: {closure.reason}</p>}
    {items.length===0?<p className="muted">No appointments</p>:items.map(r=><button key={r.id} type="button" className={`cal-week-item appt-${r.status}`} style={{borderLeftColor:r.dentistColor??'#185d55'}} onClick={()=>onSelect(r.id)}><strong>{clockOf(timezone,r.startsAt)} {r.patientName}</strong><span>{r.dentistName??'Branch'} · {statusLabels[r.status]}</span></button>)}</div>;})}</div>;
 }
+// Preloads a patient chosen elsewhere (search or profile) by ID; the name comes from the server, never the URL.
+function usePreselectedPatient(patientId:string|undefined){
+ const {scope}=useClinic();const [patient,setPatient]=useState<{id:string;name:string}|null>(null);
+ useEffect(()=>{if(!patientId)return;const c=new AbortController();api(`/api/v1/patients/${patientId}/profile`,{headers:scopeHeaders(scope),signal:c.signal}).then(d=>{if(!c.signal.aborted)setPatient({id:patientId,name:d.patient.name});}).catch(()=>{});return()=>c.abort();},[scope,patientId]);
+ return [patient,setPatient] as const;
+}
 function PatientPicker({value,onChange,disabled}:{value:{id:string;name:string}|null;onChange:(p:{id:string;name:string}|null)=>void;disabled:boolean}){
  const {scope}=useClinic();const [search,setSearch]=useState('');const [options,setOptions]=useState<{id:string;name:string;phone:string;status:string}[]|null>(null);const [error,setError]=useState('');
  useEffect(()=>{if(value||search.trim().length<2)return;const c=new AbortController();const t=setTimeout(()=>{api(`/api/v1/patients?search=${encodeURIComponent(search)}`,{headers:scopeHeaders(scope),signal:c.signal}).then(d=>{if(!c.signal.aborted){setOptions(d.patients);setError('');}}).catch(e=>{if(!c.signal.aborted)setError(e.message);});},250);return()=>{clearTimeout(t);c.abort();};},[scope,search,value]);
@@ -114,8 +120,8 @@ function DurationField({value,onChange,procedure,disabled}:{value:number;onChang
 }
 function Panel({title,onClose,children}:{title:string;onClose:()=>void;children:ReactNode}){return <section className="cal-panel-card"><div className="cal-panel-head"><h2>{title}</h2><button type="button" className="secondary" onClick={onClose} aria-label="Close panel">Close</button></div>{children}</section>;}
 const formValues=(form:HTMLFormElement)=>{const f=new FormData(form);const value=(k:string)=>String(f.get(k)??'');return {dentistId:value('dentistId')||null,chairId:value('chairId')||null,procedureId:value('procedureId')||null,reason:value('reason'),notes:value('notes'),nextAction:value('nextAction'),source:value('source')||undefined,date:value('date'),time:value('time')};};
-function BookingForm({draft,settings,procedures,onClose,onSaved}:{draft:{date:string;time:string;dentistId:string};settings:Settings;procedures:Procedure[];onClose:()=>void;onSaved:(id:string,message:string)=>void}){
- const {busy,error,send}=useCommand();const [patient,setPatient]=useState<{id:string;name:string}|null>(null);const [procedure,setProcedure]=useState<Procedure|null>(null);const [minutes,setMinutes]=useState(settings.hours?.slotMinutes&&settings.hours.slotMinutes>=15?settings.hours.slotMinutes:30);const formRef=useRef<HTMLFormElement>(null);
+function BookingForm({draft,patientId,settings,procedures,onClose,onSaved}:{draft:{date:string;time:string;dentistId:string};patientId?:string;settings:Settings;procedures:Procedure[];onClose:()=>void;onSaved:(id:string,message:string)=>void}){
+ const {busy,error,send}=useCommand();const [patient,setPatient]=usePreselectedPatient(patientId);const [procedure,setProcedure]=useState<Procedure|null>(null);const [minutes,setMinutes]=useState(settings.hours?.slotMinutes&&settings.hours.slotMinutes>=15?settings.hours.slotMinutes:30);const formRef=useRef<HTMLFormElement>(null);
  function submit(override:string|null){const form=formRef.current;if(!form||!patient)return;const v=formValues(form);const startsAt=zonedInstant(settings.timezone,v.date,v.time);
   void send<{appointment:{id:string}}>('/api/v1/appointments','POST',{patientId:patient.id,startsAt:startsAt.toISOString(),endsAt:new Date(+startsAt+minutes*60000).toISOString(),dentistId:v.dentistId,chairId:v.chairId,procedureId:v.procedureId,reason:v.reason,notes:v.notes,nextAction:v.nextAction,source:v.source,override:override?{reason:override}:null},d=>onSaved(d.appointment.id,`Booked ${patient.name} at ${v.time} on ${v.date}.`));}
  return <Panel title="New booking" onClose={onClose}><PatientPicker value={patient} onChange={setPatient} disabled={busy}/>
@@ -129,8 +135,8 @@ function BookingForm({draft,settings,procedures,onClose,onSaved}:{draft:{date:st
    <Override error={error} busy={busy} submit={reason=>submit(reason)}/>
    <button disabled={busy||!patient}>{busy?'Booking…':'Book appointment'}</button></form></Panel>;
 }
-function WalkInForm({settings,procedures,onClose,onSaved}:{settings:Settings;procedures:Procedure[];onClose:()=>void;onSaved:(id:string)=>void}){
- const {busy,error,send}=useCommand();const [patient,setPatient]=useState<{id:string;name:string}|null>(null);const [procedure,setProcedure]=useState<Procedure|null>(null);const [minutes,setMinutes]=useState(30);
+function WalkInForm({patientId,settings,procedures,onClose,onSaved}:{patientId?:string;settings:Settings;procedures:Procedure[];onClose:()=>void;onSaved:(id:string)=>void}){
+ const {busy,error,send}=useCommand();const [patient,setPatient]=usePreselectedPatient(patientId);const [procedure,setProcedure]=useState<Procedure|null>(null);const [minutes,setMinutes]=useState(30);
  function submit(e:FormEvent<HTMLFormElement>){e.preventDefault();if(!patient)return;const v=formValues(e.currentTarget);void send<{appointment:{id:string}}>('/api/v1/appointments/walk-ins','POST',{patientId:patient.id,dentistId:v.dentistId,chairId:v.chairId,procedureId:v.procedureId,minutes,reason:v.reason,notes:v.notes},d=>onSaved(d.appointment.id));}
  return <Panel title="Walk-in patient" onClose={onClose}><p>Records the patient as arrived now. Walk-ins wait for the dentist, so busy calendars do not block them.</p><PatientPicker value={patient} onChange={setPatient} disabled={busy}/>
   <form onSubmit={submit}><ResourceFields settings={settings} procedures={procedures} defaults={{}} disabled={busy} onProcedure={p=>{setProcedure(p);if(p)setMinutes(p.defaultMinutes);}}/><DurationField value={minutes} onChange={setMinutes} procedure={procedure} disabled={busy}/>

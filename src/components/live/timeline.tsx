@@ -1,10 +1,11 @@
 'use client';
+import { useRecordPatientView } from './header-tools';
 import Link from 'next/link';
 import { useEffect,useState,type FormEvent } from 'react';
 import { categoryLabels,type TimelineResult } from '@/lib/timeline/contracts';
 import { moneyMinor } from '@/lib/finance/contracts';
 import { api,scopeHeaders,useClinic } from './session';
-export function PatientTimeline({patientId}:{patientId:string}){
+export function PatientTimeline({patientId}:{patientId:string}){useRecordPatientView(patientId);
  const {scope,can}=useClinic();const [result,setResult]=useState<TimelineResult|null>(null);const [categories,setCategories]=useState<TimelineResult['categories']>([]);const [category,setCategory]=useState('all');const [from,setFrom]=useState('');const [to,setTo]=useState('');const [filters,setFilters]=useState({category:'all',from:'',to:'',revision:0});const [cursors,setCursors]=useState<(string|null)[]>([null]);const [error,setError]=useState('');const cursor=cursors.at(-1);const allowed=can('patient.demographics.read');
  useEffect(()=>{if(!allowed)return;const c=new AbortController();const query=new URLSearchParams({category:filters.category,...(filters.from?{from:filters.from}:{}),...(filters.to?{to:filters.to}:{}),...(cursor?{cursor}:{})});api(`/api/v1/patients/${patientId}/timeline?${query}`,{headers:scopeHeaders(scope),signal:c.signal}).then(data=>{if(!c.signal.aborted){setResult(data);setCategories(data.categories);setError('');}}).catch(e=>{if(!c.signal.aborted){setResult(null);setError(e.message);}});return()=>c.abort();},[scope,patientId,filters,cursor,allowed]);
  function apply(event:FormEvent){event.preventDefault();if(from&&to&&from>to){setError('Choose an ordered date range.');return;}setResult(null);setError('');setCursors([null]);setFilters(f=>({category,from,to,revision:f.revision+1}));}

@@ -77,8 +77,8 @@ Today: one calendar per branch, statuses `booked / arrived / cancelled`, branch-
 
 Today: demographics, profile revisions, archive, history/alerts, duplicate review all done.
 
-- [ ] **P1 Global search and recent patients** (M). Search box in the app header (ID/name/phone) and a per-user recent-patients list, both permission-filtered on the server. *Done when:* a user without clinical access sees no clinical data through search or recents.
-- [ ] **P2 Quick Add** (M). Header menu: new patient, appointment, walk-in, payment, follow-up, each opening a short form. *Done when:* each Quick Add action reuses the existing service and duplicate checks.
+- [x] **P1 Global search and recent patients** (M). Search box in the app header (ID/name/phone) and a per-user recent-patients list, both permission-filtered on the server. *Done when:* a user without clinical access sees no clinical data through search or recents.
+- [x] **P2 Quick Add** (M). Header menu: new patient, appointment, walk-in, payment, follow-up, each opening a short form. *Done when:* each Quick Add action reuses the existing service and duplicate checks.
 - [ ] **P3 Balance on profile and booking** (S, after F3/F4). Show current receivable/credit on profile and in booking drawer, read-only, requires `billing.read`.
 - [ ] **P4 Communication preferences for all channels** (M). Per channel (call, SMS, WhatsApp, email) and purpose (appointment, recall, billing, marketing) with consent source and opt-out, versioned. WhatsApp consent becomes one case of this. *Done when:* messaging checks use the new preferences and existing consent data is migrated.
 - [x] **P5 Race test for registration/edit** (S). Separate-connection test like S10.

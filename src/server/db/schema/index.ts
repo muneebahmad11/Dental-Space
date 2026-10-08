@@ -13,3 +13,4 @@ export * from './patient-clinical.ts';
 export * from './patient-profile.ts';
 export * from './scheduling.ts';
 export * from './procedures.ts';
+export * from './recent-patients.ts';

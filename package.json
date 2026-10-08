@@ -29,6 +29,7 @@
     "db:verify-messaging": "node --experimental-strip-types scripts/verify-messaging.ts",
     "test:finance": "node --experimental-strip-types --test tests/finance.test.ts",
     "db:verify-finance": "node --experimental-strip-types scripts/verify-finance.ts",
+    "db:verify-patient-navigation": "node --experimental-strip-types scripts/verify-patient-navigation.ts",
     "test:appointments": "node --experimental-strip-types --test tests/appointments.test.ts",
     "db:verify-appointments": "node --experimental-strip-types scripts/verify-appointments.ts",
     "db:verify-races": "node --experimental-strip-types scripts/verify-races.ts",

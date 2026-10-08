@@ -1,4 +1,5 @@
 'use client';
+import { useRecordPatientView } from './header-tools';
 import Link from 'next/link';
 import { CurrentClinicalContext } from './patient-clinical';
 import type { ComponentProps } from 'react';
@@ -18,7 +19,7 @@ export function ClinicalVisits(){
 }
 type Detail={clinical:ComponentProps<typeof CurrentClinicalContext>['initial'];visit:{id:string;patientId:string;status:string;version:number;body:ClinicalBody};patientName:string;patientDisplayId:string;authorName:string;appointment:{id:string;status:string;version:number;startsAt:string}|null;canEdit:boolean;canFinalize:boolean;revisions:{id:string;revision:number;kind:string;reason:string;body:ClinicalBody;authorName:string;signedAt:string}[]};
 export function ClinicalVisit({visitId}:{visitId:string}){
- const {scope,can}=useClinic();const [data,setData]=useState<Detail|null>(null);const [error,setError]=useState('');const [revision,setRevision]=useState(0);const [notice,setNotice]=useState('');const allowed=can('patient.clinical.read')&&can('patient.demographics.read');
+ const {scope,can}=useClinic();const [data,setData]=useState<Detail|null>(null);useRecordPatientView(data?.visit.patientId??'');const [error,setError]=useState('');const [revision,setRevision]=useState(0);const [notice,setNotice]=useState('');const allowed=can('patient.clinical.read')&&can('patient.demographics.read');
  useEffect(()=>{if(!allowed)return;const c=new AbortController();api(`/api/v1/visits/${visitId}`,{headers:scopeHeaders(scope),signal:c.signal}).then(result=>{if(!c.signal.aborted)setData(result);}).catch(e=>{if(!c.signal.aborted)setError(e.message);});return()=>c.abort();},[scope,visitId,revision,allowed]);
  const saved=(message:string)=>{setNotice(message);setError('');setData(null);setRevision(n=>n+1);};
  if(!allowed)return <section className="staff-workspace live-inner"><h1>Clinical visit</h1><p>Clinical read access is required.</p></section>;
