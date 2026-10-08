@@ -1,15 +1,15 @@
 # Milestone checklist
 
-This tracks implementation against the technical plan; partial milestones are not marked complete. Updated 2026-10-08.
+This tracks implementation against the technical plan; partial milestones are not marked complete. Updated 2026-10-09.
 
 | Milestone | Current evidence and open work |
 |---|---|
 | M00 Decisions | Development PKR/Asia-Karachi defaults only. Clinic rules, recovery/retention and rollout decisions open. |
 | M01 Foundation | Next.js, pinned dependencies, local PostgreSQL, migrations, CI configuration and Git initialization. Published to GitHub; the initial workflow CI passed. Hosted DB/staging/deployment open. |
 | M02 Identity | Supabase sign-in, scoped memberships/permissions, append-only audit and denial tests. Staff administration/reset/read auditing/production hardening open. |
-| M03 Patients | Durable demographics, search, registration/editing and retries. Clinical history/alerts/duplicate review open. |
+| M03 Patients | Durable demographics, search, registration/editing and retries. Versioned medical/dental history and active/resolved alerts implemented for selected branch. Full demographics, status and duplicate review remain open. |
 | M04 Scheduling | Durable branch bookings/arrival/cancellation and serialized overlap checks. Resources/hours/week view/rescheduling/history and independent connection races open. |
-| M05 Clinical | Durable draft/final revision/amendment workflow implemented with author permissions and immutable revisions; templates, chart/alerts, scheduling completion links and clinician acceptance remain open. |
+| M05 Clinical | Durable draft/final revision/amendment workflow implemented with author permissions and immutable revisions; templates, chart, scheduling completion links and clinician acceptance remain open. |
 | M06 Plans | Durable treatment-item estimates, immutable saved versions and version-bound patient acceptance implemented. Partial completions, remaining quantities and accepted-price billing links implemented. Completion corrections and accepted-plan revisions open. |
 | M07 Finance | Manual charges, partial payment/allocation, fixed receipts, refunds/reversals, branch isolation and immutable records tested. Discounts/tax policy, charge credits, deposits and independent refund/payment race evidence open. |
 | M08 Operations | Paid expenses, closing draft/separate approval, cash refund/payment/expense reconciliation and locked-day guards tested. Cash transfers, unpaid liabilities, reopening policy/approval matrix and attachment workflows open. |

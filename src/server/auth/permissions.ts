@@ -1,4 +1,5 @@
 export const permissionCatalog = [
+  'patient.clinical.write',
   'followup.read', 'followup.write',
   'plan.complete', 'plan.read', 'plan.write', 'plan.accept',
   'closing.read', 'closing.write', 'refund.post', 'billing.read', 'charge.post', 'communication.read', 'communication.send', 'communication.preferences.write', 'appointment.read', 'appointment.write', 'expense.read', 'expense.write',

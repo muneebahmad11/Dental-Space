@@ -1,0 +1,11 @@
+import { z } from 'zod';
+const text=z.string().trim().max(6000);
+export const historyBody=z.object({medicalHistory:text,dentalHistory:text,medications:text,allergies:text,tobaccoHistory:text,source:z.string().trim().min(2).max(160),reviewedOn:z.iso.date()}).strict().refine(body=>new TextEncoder().encode(JSON.stringify(body)).byteLength<=60000);
+export type HistoryBody=z.infer<typeof historyBody>;
+export const historyInput=z.object({operationId:z.uuid(),expectedVersion:z.number().int().min(0),reason:z.string().trim().min(3).max(500),body:historyBody}).strict();
+export const alertTypes=['allergy','medication','medical','dental','other'] as const;
+export const alertSeverities=['informational','important','critical'] as const;
+export const alertBody=z.object({type:z.enum(alertTypes),severity:z.enum(alertSeverities),text:z.string().trim().min(3).max(1000),active:z.boolean()}).strict();
+export type AlertBody=z.infer<typeof alertBody>;
+export const createAlertInput=z.object({operationId:z.uuid(),body:alertBody,reason:z.string().trim().min(3).max(500)}).strict().refine(value=>value.body.active,{message:'New alerts start active.'});
+export const updateAlertInput=z.object({operationId:z.uuid(),expectedVersion:z.number().int().positive(),body:alertBody,reason:z.string().trim().min(3).max(500)}).strict();

@@ -190,3 +190,12 @@ The DTO omits note bodies, refund reasons, message parameters/recipients, consen
 Filters use activity timestamps in the clinic timezone; billing/performed/due dates appear separately. A repeatable-read query and timestamp/key cursor preserve PostgreSQL microsecond ordering; each page is capped at 50 events. There are no copied timeline writes or synthetic placeholders for unimplemented prescriptions/files/consents/labs. Their future event integration, complete scheduling history, source-query performance acceptance and browser/staff journey verification remain open.
 
 Validation: `pnpm check` passed lint, TypeScript, 36 unit tests and production build. Rollback-only `pnpm db:verify-timeline` passed source/permission isolation, clinic-date filters, microsecond ordering and multi-page coverage. Browser visual/staff acceptance remains unverified.
+
+
+## Medical history and alerts — 2026-10-09
+
+Added immutable branch patient-history reviews for medical/dental history, medications, allergies, tobacco history, source and review date. Added versioned alert create/edit/resolve/reactivate with immutable prior content and current projection checks. Clinical read remains separate from demographic read; recording additionally requires new patient.clinical.write, which is not granted to actual accounts automatically.
+
+The profile shows current history, older reviews, active/resolved alerts and pagination. Clinical visits load current branch history/alerts alongside the note, explicitly distinct from signed historical content. Existing signed notes remain unchanged when patient history is updated. Timeline adds generic history/alert activity without note or alert text. Blank fields mean not recorded, never an automatically inferred absence of conditions.
+
+`pnpm check` passed lint, TypeScript, 38 unit tests and production build. `pnpm db:verify-patient-clinical` passed history preservation, active/resolved projections, signed-note preservation, retry/version conflicts, scope/permission denial and audit rollback using synthetic fixtures. Browser/clinician acceptance and any policy-approved cross-branch clinical sharing remain open.

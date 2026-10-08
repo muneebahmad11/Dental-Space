@@ -9,3 +9,4 @@ export * from './closing.ts';
 export * from './visits.ts';
 export * from './plans.ts';
 export * from './follow-ups.ts';
+export * from './patient-clinical.ts';
