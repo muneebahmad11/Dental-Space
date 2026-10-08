@@ -32,3 +32,12 @@ test('resource inputs cannot smuggle scope or unknown fields',()=>{
  assert.equal(createResourceInput.safeParse({...dentist,color:'red'}).success,false);
  assert.equal(createResourceInput.safeParse({kind:'chair',operationId:randomUUID(),name:'Chair 1',color:'#185d55'}).success,false);
 });
+test('clinic wall-clock times convert to instants independent of the device timezone',async()=>{
+ const { zonedInstant,offsetMinutes,weekStart,addDays,clockOf }=await import('../src/lib/scheduling/contracts.ts');
+ assert.equal(zonedInstant('Asia/Karachi','2026-10-12','09:30').toISOString(),'2026-10-12T04:30:00.000Z');
+ assert.equal(offsetMinutes('UTC',new Date()),0);
+ assert.equal(zonedInstant('Europe/London','2026-07-01','09:00').toISOString(),'2026-07-01T08:00:00.000Z');
+ assert.equal(zonedInstant('Europe/London','2026-12-01','09:00').toISOString(),'2026-12-01T09:00:00.000Z');
+ assert.equal(weekStart('2026-10-11'),'2026-10-05');assert.equal(weekStart('2026-10-12'),'2026-10-12');assert.equal(addDays('2026-12-31',1),'2027-01-01');
+ assert.equal(clockOf('Asia/Karachi','2026-10-12T04:30:00Z'),'09:30');
+});

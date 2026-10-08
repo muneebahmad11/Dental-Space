@@ -37,3 +37,17 @@ export function openingCheck(hours:WeeklyHours|null,closedDates:ReadonlySet<stri
  const end=localParts(timezone,endsAt);if(end.date!==start.date)return 'outside_hours';
  return hours[start.weekday].some(([opens,closes])=>start.minute>=clockMinutes(opens)&&end.minute<=clockMinutes(closes))?'open':'outside_hours';
 }
+// UTC offset (minutes) of a timezone at an instant, e.g. +300 for Asia/Karachi.
+export function offsetMinutes(timezone:string,instant:Date){
+ const name=new Intl.DateTimeFormat('en-US',{timeZone:timezone,timeZoneName:'longOffset'}).formatToParts(instant).find(p=>p.type==='timeZoneName')?.value??'GMT';
+ const m=/GMT([+-])(\d{2}):?(\d{2})?/.exec(name);return m?(m[1]==='-'?-1:1)*(Number(m[2])*60+Number(m[3]??0)):0;
+}
+// The instant at which the clinic's wall clock shows this date and time.
+export function zonedInstant(timezone:string,date:string,time:string){
+ const [y,mo,d]=date.split('-').map(Number);const [h,mi]=time.split(':').map(Number);const guess=Date.UTC(y,mo-1,d,h,mi);
+ const first=guess-offsetMinutes(timezone,new Date(guess))*60000;return new Date(guess-offsetMinutes(timezone,new Date(first))*60000);
+}
+export const addDays=(date:string,days:number)=>new Date(Date.parse(`${date}T00:00:00Z`)+days*86400000).toISOString().slice(0,10);
+export const weekStart=(date:string)=>addDays(date,-((new Date(`${date}T00:00:00Z`).getUTCDay()+6)%7));
+export const minutesToClock=(minutes:number)=>`${String(Math.floor(minutes/60)).padStart(2,'0')}:${String(minutes%60).padStart(2,'0')}`;
+export const clockOf=(timezone:string,instant:Date|string)=>new Intl.DateTimeFormat('en-GB',{timeZone:timezone,hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(instant));
