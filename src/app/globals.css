@@ -251,3 +251,6 @@ button:focus-visible,a:focus-visible { outline:2px solid #548e69; outline-offset
 .quick-add-menu a { padding:9px 10px; border-radius:6px; font-size:13.5px; color:#183e42; }
 .quick-add-menu a:hover { background:#f4f8f7; }
 @media(max-width:900px) { .topbar-tools { order:3; flex-basis:100%; margin:8px 0 0; justify-content:space-between; } .live-workspace .topbar { flex-wrap:wrap; height:auto; padding-top:10px; padding-bottom:10px; } .header-search { width:auto; flex:1; } }
+.staff-workspace fieldset.check-group { display:flex; flex-wrap:wrap; gap:8px 20px; margin:12px 0; }
+.staff-workspace fieldset.check-group legend { width:100%; font-weight:600; margin-bottom:6px; }
+.staff-workspace fieldset.check-group label { margin:0; font-weight:400; }

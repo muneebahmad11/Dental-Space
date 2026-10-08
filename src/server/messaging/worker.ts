@@ -7,6 +7,8 @@ import { reminderStatuses } from '../../lib/appointments/contracts.ts';
 import { appUsers,memberships } from '../db/schema/organization.ts';
 import { patients } from '../db/schema/patients.ts';
 import { communicationEvents,communicationJobs,messagingPreferences } from '../db/schema/communications.ts';
+import { contactAllowed } from '../../lib/contact-preferences/contracts.ts';
+import { currentContactPreferences } from '../patient-profile/contact.ts';
 import type { MessagingConfig } from './config.ts';
 import { communicationContext } from './service.ts';
 import type { MessageSender,SendOutcome } from './provider.ts';
@@ -36,6 +38,7 @@ export async function dispatchClaimedMessage(db:Database,config:MessagingConfig,
    if(!pref?.enabled||pref.version!==job.preferenceVersion||pref.recipient!==job.recipient||recipientNumber(patient?.phone??'')!==job.recipient)code='CONSENT_CHANGED';
    const template=config.templates.find(t=>t.name===job.template&&t.language===job.language);
    if(!template||template.parameters.length!==job.parameters.length)code='TEMPLATE_CHANGED';
+   else if(!contactAllowed(await currentContactPreferences(tx,job.clinicId,job.patientId),'whatsapp',job.appointmentId?'appointment':template.purpose))code='CONTACT_NOT_ALLOWED';
    if(job.appointmentId){authorize(c,'appointment.read');const [a]=await tx.select().from(appointments).where(and(eq(appointments.id,job.appointmentId),eq(appointments.clinicId,job.clinicId),eq(appointments.branchId,job.branchId),eq(appointments.patientId,job.patientId)));if(!a||!(reminderStatuses as readonly string[]).includes(a.status)||a.version!==job.appointmentVersion||+a.startsAt<=Date.now())code='STALE_APPOINTMENT';}
   }catch{code='AUTHORIZATION_UNAVAILABLE';}
   const next=code?'cancelled':'sending';

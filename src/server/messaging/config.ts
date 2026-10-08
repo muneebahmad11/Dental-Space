@@ -1,5 +1,6 @@
 import { z } from 'zod';
-const templateSchema=z.object({name:z.string().regex(/^[a-z0-9_]{1,100}$/),language:z.string().regex(/^[a-z]{2}(?:_[A-Z]{2})?$/),label:z.string().min(1).max(100),parameters:z.array(z.string().min(1).max(60)).max(10)}).strict();
+import { contactPurposes } from '../../lib/contact-preferences/contracts.ts';
+const templateSchema=z.object({name:z.string().regex(/^[a-z0-9_]{1,100}$/),language:z.string().regex(/^[a-z]{2}(?:_[A-Z]{2})?$/),label:z.string().min(1).max(100),parameters:z.array(z.string().min(1).max(60)).max(10),purpose:z.enum(contactPurposes).default('appointment')}).strict();
 export type MessageTemplate=z.infer<typeof templateSchema>;
 export function messagingConfig(values:Record<string,string|undefined>){
  const enabled=values.WHATSAPP_ENABLED==='true';
