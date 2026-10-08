@@ -219,3 +219,12 @@ Registration serializes per clinic, checks original operation replay before dupl
 Rollback-only duplicate tests passed normalized primary/alternate phone and exact-name candidates, clinic isolation, override permission, family records, original-ID replays, immutable evidence, permission revocation and audit rollback. Separate-connection registration/edit races, fuzzy matching and clinic/staff acceptance remain open.
 
 Duplicate validation: `pnpm check` passed lint, TypeScript, 41 unit tests and production build. Duplicate, patient, visit, timeline, medical-history and profile SQL suites passed with all fixtures rolled back. Current allergies/medications and alert review timestamps are visible in clinical context; failed refreshes clear that summary rather than implying fresh information. Browser/staff acceptance remains unverified.
+
+
+## Schedule setup: dentists, chairs, hours and closed dates — 2026-10-09
+
+Roadmap task S1. `/schedule-setup` configures, per branch: dentist calendars (name, colour, optional link to an active branch staff account), chairs, weekly opening periods (up to four per weekday, clinic-local time) with calendar slot length, and closed dates with a reason. Nothing is deleted: resources are deactivated/reactivated and closed dates are reopened. Every change writes an immutable `schedule_config_revisions` snapshot, which is also the idempotency record, plus an audit event in the same transaction. Branch configuration commands serialize on an advisory lock; edits use expected versions.
+
+Reading requires `appointment.read` or the new `schedule.configure`; changes require `schedule.configure` (added to the owner role template, never auto-granted to accounts). Staff lists are returned only to configurers. Adding a closed date reports existing bookings on that date and never cancels them. `openingCheck` and `openingRules` are prepared for booking validation in S5; until opening hours are saved, a branch is not restricted.
+
+Validation: `pnpm check` passed lint, TypeScript, unit tests (4 new scheduling tests) and production build. Rollback-only `pnpm db:verify-scheduling` passed retries, stale versions, case-insensitive names, staff-link rules, branch/clinic isolation, existing-booking counts, revision immutability, permission revocation and audit rollback. Browser visual check pending staff sign-in.

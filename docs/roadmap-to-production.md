@@ -47,9 +47,9 @@ Follow the existing project conventions (see `src/server/follow-ups`, `src/serve
 
 ## Stage 0: Housekeeping (do first)
 
-- [ ] **0.1 Commit the duplicate-review work** (S). The migration `0020`, duplicate-candidates API, tests and doc edits are still uncommitted. *Done when:* `pnpm check` and `pnpm db:verify-patient-duplicates` pass, the work is committed, pushed, and CI is green.
-- [ ] **0.2 Grant your own local account the permissions you need to test** (S) 👤. Many screens show "access required" because new permissions are not granted automatically. Use `scripts/grant-local-access.ts` with an explicit list. *Done when:* every current screen opens for your local owner/dentist test account.
-- [ ] **0.3 Create the clinic decision register** (S). Add `docs/architecture/clinic-decisions.md` with the 15 decisions below, the development default used for each, owner and due date. *Done when:* every 🔒 item in this file points to a register row.
+- [x] **0.1 Commit the duplicate-review work** (S). The migration `0020`, duplicate-candidates API, tests and doc edits are still uncommitted. *Done when:* `pnpm check` and `pnpm db:verify-patient-duplicates` pass, the work is committed, pushed, and CI is green.
+- [x] **0.2 Grant your own local account the permissions you need to test** (S) 👤. Many screens show "access required" because new permissions are not granted automatically. Use `scripts/grant-local-access.ts` with an explicit list. *Done when:* every current screen opens for your local owner/dentist test account.
+- [x] **0.3 Create the clinic decision register** (S). Add `docs/architecture/clinic-decisions.md` with the 15 decisions below, the development default used for each, owner and due date. *Done when:* every 🔒 item in this file points to a register row.
 - [ ] **0.4 Signed-in browser walkthrough of what exists** (S). Book → arrive → visit → plan → charge → pay → receipt → follow-up → close the day in the browser. Record defects as tasks here. *Done when:* a list of found defects exists (fix critical ones before Stage 1).
 
 ---
@@ -62,7 +62,7 @@ Order inside the stage matters: scheduling and the procedure catalog come first 
 
 Today: one calendar per branch, statuses `booked / arrived / cancelled`, branch-wide overlap lock, day list only.
 
-- [ ] **S1 Clinic resources and hours** (L). Tables for clinicians (link to membership, display name, colour, active), chairs (optional per PRD), weekly opening hours per branch, closed dates/holidays. Settings screen for admins with a new `schedule.configure` permission. *Done when:* an admin can set up 2 dentists, 2 chairs and opening hours, and the configuration is audited.
+- [x] **S1 Clinic resources and hours** (L). Tables for clinicians (link to membership, display name, colour, active), chairs (optional per PRD), weekly opening hours per branch, closed dates/holidays. Settings screen for admins with a new `schedule.configure` permission. *Done when:* an admin can set up 2 dentists, 2 chairs and opening hours, and the configuration is audited.
 - [ ] **S2 Procedure catalog** (M) 🔒. Clinic-level procedures: name, code, category, default duration, default price (PKR paisa), active flag, versioned price history. Used later by plans, visits and charges. *Done when:* catalog CRUD with history works and price changes never alter existing estimates.
 - [ ] **S3 Appointment details** (M). Add dentist, optional chair, procedure/reason, notes, next action, booking source (`phone`, `walk_in`, `in_person`, later `online`). Duration defaults from procedure; changing it needs `appointment.duration.override`. *Done when:* booking stores and shows all fields; old rows remain valid.
 - [ ] **S4 Full status model and history** (L). Statuses: `booked → confirmed → arrived → waiting → in_treatment → completed`, plus `cancelled`, `no_show`, `rescheduled`. Allowed transitions defined once in `src/lib/appointments/` (with clinic-approved shortcuts 🔒). New immutable `appointment_events` table (from/to status, actor, reason, time). Update the modules that depend on status: visits (start from arrived/waiting/in_treatment), messaging and worker (`booked` or `confirmed`), overview counts and timeline labels. *Done when:* AT04 passes; every transition is in history; invalid transitions return 409.

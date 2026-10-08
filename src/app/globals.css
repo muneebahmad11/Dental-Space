@@ -155,3 +155,12 @@ button:focus-visible,a:focus-visible { outline:2px solid #548e69; outline-offset
 .patient-alert { display:block!important; border-left:4px solid #b38b38; padding:14px!important; margin:8px 0; }
 .patient-alert-critical { border-color:#b33838; background:#fff3f3; }
 .patient-alert-informational { border-color:#5484ac; }
+.staff-workspace fieldset.hours-day { display:flex; flex-wrap:wrap; align-items:center; gap:10px; padding:12px 0; border-bottom:1px solid #e3eaea; }
+.staff-workspace fieldset.hours-day legend { float:left; width:110px; font-weight:600; }
+.staff-workspace .hours-period { display:inline-flex; align-items:center; gap:6px; }
+.staff-workspace .hours-period input { width:auto; padding:8px; }
+.staff-workspace button.secondary { background:white; color:#185d55; border:1px solid #abc2bf; }
+.staff-workspace .muted { color:#7b9090; }
+.staff-workspace details { margin-top:16px; }
+.staff-workspace summary { cursor:pointer; font-weight:600; color:#185d55; margin-bottom:12px; }
+.color-dot { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:8px; vertical-align:middle; }

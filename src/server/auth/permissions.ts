@@ -1,4 +1,5 @@
 export const permissionCatalog = [
+  'schedule.configure',
   'patient.clinical.write', 'patient.archive', 'patient.duplicate.override',
   'followup.read', 'followup.write',
   'plan.complete', 'plan.read', 'plan.write', 'plan.accept',
@@ -8,7 +9,7 @@ export const permissionCatalog = [
 ] as const;
 export type Permission = typeof permissionCatalog[number];
 export const roleTemplates: Record<string, readonly Permission[]> = {
-  owner: ['patient.demographics.read', 'patient.demographics.write', 'payment.post', 'closing.approve', 'user.manage', 'audit.read'],
+  owner: ['patient.demographics.read', 'patient.demographics.write', 'schedule.configure', 'payment.post', 'closing.approve', 'user.manage', 'audit.read'],
   dentist: ['patient.demographics.read', 'patient.demographics.write', 'patient.clinical.read', 'visit.draft.write', 'visit.finalize'],
   reception: ['patient.demographics.read', 'patient.demographics.write', 'payment.post'],
   assistant: ['patient.demographics.read'],
