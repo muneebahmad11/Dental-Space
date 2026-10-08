@@ -29,7 +29,8 @@ export async function listPatients(db: Database, scope: PatientScope, raw: unkno
   const input = parse(z.object({ search: z.string().trim().max(100).default(''), offset: z.number().int().min(0).max(100000).default(0) }).strict(), raw);
   const ctx = await context(db, scope);
   const search = `%${input.search.replace(/[\\%_]/g, '\\$&')}%`;
-  return db.select(patientFields).from(patients).where(and(eq(patients.clinicId, ctx.clinicId), input.search ? or(ilike(patients.name, search), ilike(patients.phone, search), ilike(patients.displayId, search)) : undefined)).orderBy(desc(patients.createdAt), desc(patients.id)).limit(50).offset(input.offset);
+  const digits=input.search.replace(/\D/g,'');
+  return db.select({...patientFields,status:sql<string>`coalesce((select pr.body->>'status' from clinic_app.patient_profiles pr where pr.patient_id=${patients.id} and pr.clinic_id=${patients.clinicId}),'active')`}).from(patients).where(and(eq(patients.clinicId, ctx.clinicId), input.search ? or(ilike(patients.name, search), ilike(patients.phone, search), ilike(patients.displayId, search),digits.length>=3?ilike(patients.phoneNormalized,`%${digits}%`):undefined,digits.length>=3?sql`exists(select 1 from clinic_app.patient_profiles pr where pr.patient_id=${patients.id} and pr.clinic_id=${patients.clinicId} and regexp_replace(pr.body->>'alternatePhone','[^0-9]','','g') like ${`%${digits}%`})`:undefined) : undefined)).orderBy(desc(patients.createdAt), desc(patients.id)).limit(50).offset(input.offset);
 }
 export async function createPatient(db: Database, scope: PatientScope, raw: unknown) {
   const { operationId, ...input } = parse(patientInput.extend({ operationId: z.uuid() }), raw);

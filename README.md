@@ -26,7 +26,7 @@ Use the same hostname as `NEXT_PUBLIC_APP_URL`; write endpoints enforce its Orig
 ## Implemented workflows
 
 - Verified staff sign-in, clinic/branch selection, scoped permissions and append-only staff audit.
-- Patient demographics, registration/search/editing, version checks and retry protection.
+- Patient registration/search/editing and versioned DOB/reported age, alternate/emergency contacts, address and active/inactive/archive status.
 - Clinical visit drafts, author-only signing, immutable revisions and signed amendments.
 - Versioned branch medical/dental history, medications/allergies/tobacco records and active/resolved alerts, visible alongside clinical visits.
 - Treatment items, exact quantity-based PKR estimates, preserved estimate versions and immutable acceptance records.
@@ -56,6 +56,7 @@ pnpm db:verify-plans
 pnpm db:verify-follow-ups
 pnpm db:verify-timeline
 pnpm db:verify-patient-clinical
+pnpm db:verify-patient-profile
 ```
 
 Database checks use local synthetic fixtures and roll them back. Messaging tests use fake providers and never send real messages. CI runs static/build/unit checks and PostgreSQL integration suites. Browser acceptance and live integrations are separate gates.

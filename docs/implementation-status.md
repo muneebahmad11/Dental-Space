@@ -199,3 +199,12 @@ Added immutable branch patient-history reviews for medical/dental history, medic
 The profile shows current history, older reviews, active/resolved alerts and pagination. Clinical visits load current branch history/alerts alongside the note, explicitly distinct from signed historical content. Existing signed notes remain unchanged when patient history is updated. Timeline adds generic history/alert activity without note or alert text. Blank fields mean not recorded, never an automatically inferred absence of conditions.
 
 `pnpm check` passed lint, TypeScript, 38 unit tests and production build. `pnpm db:verify-patient-clinical` passed history preservation, active/resolved projections, signed-note preservation, retry/version conflicts, scope/permission denial and audit rollback using synthetic fixtures. Browser/clinician acceptance and any policy-approved cross-branch clinical sharing remain open.
+
+
+## Expanded demographic profile — 2026-10-09
+
+Added a clinic-wide demographic profile separate from branch medical records: unknown DOB, known DOB or reported age with as-of date, gender as reported, address, alternate phone and emergency contact fields. Updates create immutable revisions and protected current projections. Active/inactive status uses demographic write; changing into/out of Archived additionally requires patient.archive. No records are deleted and no real account grants are added. Archive status is an administrative marker in this slice; appointment/clinical/finance services are not silently disabled.
+
+Added a general profile page available to demographic readers, with clinical sections still independently protected. Patient lists include status. Search now matches normalized primary and alternate phone digits across formatting differences. Profile change metadata joins the permission-filtered timeline. DOB/age/date rules, archive/replay access, cross-clinic denial, immutable projections, phone search and audit rollback passed rollback-only integration checks. Duplicate-review workflow and clinic acceptance remain open.
+
+Profile validation: `pnpm check` passed lint, TypeScript, 40 unit tests and production build. `pnpm db:verify-patient-profile` passed rollback-only profile/phone/archive tests.

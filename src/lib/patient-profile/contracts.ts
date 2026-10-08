@@ -1,0 +1,6 @@
+import { z } from 'zod';
+const optionalPhone=z.string().trim().max(30).refine(value=>!value||(/^[+\d\s()-]+$/.test(value)&&value.replace(/\D/g,'').length>=7));
+export const demographicBody=z.object({dob:z.iso.date().nullable(),reportedAge:z.number().int().min(0).max(130).nullable(),ageAsOf:z.iso.date().nullable(),gender:z.string().trim().max(80),address:z.string().trim().max(500),alternatePhone:optionalPhone,emergencyName:z.string().trim().max(160),emergencyPhone:optionalPhone,emergencyRelationship:z.string().trim().max(80),status:z.enum(['active','inactive','archived'])}).strict().refine(body=>body.dob===null||body.reportedAge===null,{message:'Use DOB or reported age, not both.'}).refine(body=>(body.reportedAge===null)===(body.ageAsOf===null),{message:'Record the date for reported age.'});
+export type DemographicBody=z.infer<typeof demographicBody>;
+export const blankDemographicBody:DemographicBody={dob:null,reportedAge:null,ageAsOf:null,gender:'',address:'',alternatePhone:'',emergencyName:'',emergencyPhone:'',emergencyRelationship:'',status:'active'};
+export const demographicInput=z.object({operationId:z.uuid(),expectedVersion:z.number().int().min(0),reason:z.string().trim().min(3).max(500),body:demographicBody}).strict();

@@ -134,6 +134,13 @@
       "when": 1791490356657,
       "tag": "0018_overrated_beyonder",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1791490895019,
+      "tag": "0019_public_nova",
+      "breakpoints": true
     }
   ]
 }
