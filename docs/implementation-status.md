@@ -208,3 +208,14 @@ Added a clinic-wide demographic profile separate from branch medical records: un
 Added a general profile page available to demographic readers, with clinical sections still independently protected. Patient lists include status. Search now matches normalized primary and alternate phone digits across formatting differences. Profile change metadata joins the permission-filtered timeline. DOB/age/date rules, archive/replay access, cross-clinic denial, immutable projections, phone search and audit rollback passed rollback-only integration checks. Duplicate-review workflow and clinic acceptance remain open.
 
 Profile validation: `pnpm check` passed lint, TypeScript, 40 unit tests and production build. `pnpm db:verify-patient-profile` passed rollback-only profile/phone/archive tests.
+
+
+## Duplicate registration review — 2026-10-09
+
+Added same-clinic candidate lookup by case-insensitive exact name or normalized primary/alternate phone. Registration previews up to 10 possible matches with links to existing profiles. Creating a separate patient despite matches requires an explicit reason and patient.duplicate.override, which is not assigned automatically. Shared family phones are preserved as separate patients; no automatic merge or overwriting occurs.
+
+Registration serializes per clinic, checks original operation replay before duplicate review, and stores immutable override reason/candidate IDs plus audited actor/branch/time in the same transaction as patient creation. The UI preserves the original request during ambiguous retries. Matching does not guess country codes or identity, and arbitrary candidate IDs cannot be supplied by the client. Profile/archive/history operations remain versioned and independently permission-checked.
+
+Rollback-only duplicate tests passed normalized primary/alternate phone and exact-name candidates, clinic isolation, override permission, family records, original-ID replays, immutable evidence, permission revocation and audit rollback. Separate-connection registration/edit races, fuzzy matching and clinic/staff acceptance remain open.
+
+Duplicate validation: `pnpm check` passed lint, TypeScript, 41 unit tests and production build. Duplicate, patient, visit, timeline, medical-history and profile SQL suites passed with all fixtures rolled back. Current allergies/medications and alert review timestamps are visible in clinical context; failed refreshes clear that summary rather than implying fresh information. Browser/staff acceptance remains unverified.

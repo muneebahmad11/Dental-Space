@@ -2,6 +2,8 @@ import { createHash, randomUUID } from 'node:crypto';
 import { and, desc, eq, ilike, or, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { authorize, resolveContext, type Database } from '../auth/context.ts';
+import { patientDuplicateReviews } from '../db/schema/patient-profile.ts';
+import { phoneDigits,normalizedPatientName } from '../../lib/patient-profile/duplicates.ts';
 import { patients } from '../db/schema/patients.ts';
 import { auditEvents } from '../db/schema/security.ts';
 import { AppError } from '../http/errors.ts';
@@ -33,10 +35,16 @@ export async function listPatients(db: Database, scope: PatientScope, raw: unkno
   return db.select({...patientFields,status:sql<string>`coalesce((select pr.body->>'status' from clinic_app.patient_profiles pr where pr.patient_id=${patients.id} and pr.clinic_id=${patients.clinicId}),'active')`}).from(patients).where(and(eq(patients.clinicId, ctx.clinicId), input.search ? or(ilike(patients.name, search), ilike(patients.phone, search), ilike(patients.displayId, search),digits.length>=3?ilike(patients.phoneNormalized,`%${digits}%`):undefined,digits.length>=3?sql`exists(select 1 from clinic_app.patient_profiles pr where pr.patient_id=${patients.id} and pr.clinic_id=${patients.clinicId} and regexp_replace(pr.body->>'alternatePhone','[^0-9]','','g') like ${`%${digits}%`})`:undefined) : undefined)).orderBy(desc(patients.createdAt), desc(patients.id)).limit(50).offset(input.offset);
 }
 export async function createPatient(db: Database, scope: PatientScope, raw: unknown) {
-  const { operationId, ...input } = parse(patientInput.extend({ operationId: z.uuid() }), raw);
-  const creationHash = createHash('sha256').update(JSON.stringify(input)).digest('hex');
+  const { operationId,duplicateOverride, ...input } = parse(patientInput.extend({ operationId: z.uuid(),duplicateOverride:z.object({reason:z.string().trim().min(3).max(500)}).strict().optional() }), raw);
+  const creationHash = createHash('sha256').update(JSON.stringify({...input,...(duplicateOverride?{duplicateOverride}:{})})).digest('hex');
   return db.transaction(async tx => {
-    const ctx = await context(tx, scope, true);
+    const ctx = await context(tx, scope, true);authorize(ctx,'patient.demographics.read');
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${ctx.clinicId+':patient-registration'},0))`);
+    const [prior]=await tx.select({...patientFields,creationHash:patients.creationHash}).from(patients).where(and(eq(patients.clinicId,ctx.clinicId),eq(patients.creationKey,operationId)));
+    if(prior){if(prior.creationHash!==creationHash)throw new AppError(409,'OPERATION_CONFLICT','This registration request key has different details.');if(duplicateOverride)authorize(ctx,'patient.duplicate.override');const {creationHash:stored,...result}=prior;void stored;return result;}
+    const candidates=await duplicateRows(tx,ctx.clinicId,input.name,input.phone);
+    if(candidates.length&&!duplicateOverride)throw new AppError(409,'DUPLICATE_REVIEW_REQUIRED','Possible existing patients found. Review matches before creating a separate record.');
+    if(duplicateOverride)authorize(ctx,'patient.duplicate.override');
     const id = randomUUID();
     const [patient] = await tx.insert(patients).values({ id, creationKey: operationId, creationHash, clinicId: ctx.clinicId, displayId: `P-${id}`, ...input, email: input.email || null, phoneNormalized: input.phone.replace(/\D/g, '') }).onConflictDoNothing({ target: [patients.clinicId, patients.creationKey] }).returning(patientFields);
     if (!patient) {
@@ -47,6 +55,7 @@ export async function createPatient(db: Database, scope: PatientScope, raw: unkn
       return result;
     }
     await tx.insert(auditEvents).values({ clinicId: ctx.clinicId, branchId: ctx.branchId, actorMembershipId: ctx.membershipId, action: 'patient.created', entityType: 'patient', entityId: id, requestId: randomUUID() });
+    if(duplicateOverride&&candidates.length){await tx.insert(patientDuplicateReviews).values({clinicId:ctx.clinicId,branchId:ctx.branchId,patientId:patient.id,actorMembershipId:ctx.membershipId,reason:duplicateOverride.reason,candidatePatientIds:candidates.slice(0,10).map(candidate=>candidate.id),moreCandidates:candidates.length>10});await tx.insert(auditEvents).values({clinicId:ctx.clinicId,branchId:ctx.branchId,actorMembershipId:ctx.membershipId,entityId:patient.id,entityType:'patient',action:'patient.duplicate_override',requestId:randomUUID()});}
     return patient;
   });
 }
@@ -61,3 +70,6 @@ export async function updatePatient(db: Database, scope: PatientScope, patientId
     return patient;
   });
 }
+
+async function duplicateRows(db:Database,clinicId:string,name:string,phone:string){const digits=phoneDigits(phone);return db.select({id:patients.id,name:patients.name,phone:patients.phone,displayId:patients.displayId}).from(patients).where(and(eq(patients.clinicId,clinicId),or(sql`lower(trim(${patients.name}))=${normalizedPatientName(name)}`,digits.length>=7?eq(patients.phoneNormalized,digits):undefined,digits.length>=7?sql`exists(select 1 from clinic_app.patient_profiles pr where pr.patient_id=${patients.id} and pr.clinic_id=${patients.clinicId} and regexp_replace(pr.body->>'alternatePhone','[^0-9]','','g')=${digits})`:undefined))).orderBy(desc(patients.createdAt),desc(patients.id)).limit(11);}
+export async function duplicateCandidates(db:Database,scope:PatientScope,raw:unknown){const input=parse(z.object({name:z.string().trim().min(2).max(160),phone:z.string().trim().max(30).default('')}).strict(),raw);const c=await context(db,scope);const candidates=await duplicateRows(db,c.clinicId,input.name,input.phone);return {candidates:candidates.slice(0,10),hasMore:candidates.length>10,canOverride:c.permissions.has('patient.duplicate.override')};}

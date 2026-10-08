@@ -50,3 +50,4 @@ jobs:
       - run: pnpm db:verify-timeline
       - run: pnpm db:verify-patient-clinical
       - run: pnpm db:verify-patient-profile
+      - run: pnpm db:verify-patient-duplicates

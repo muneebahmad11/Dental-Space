@@ -61,7 +61,7 @@ try {
       await tx.execute(sql`reset role`);
       await tx.execute(sql`revoke insert on clinic_app.audit_events from clinic_runtime`);
       await tx.execute(sql`set local role clinic_runtime`);
-      await assert.rejects(createPatient(tx, scope, { ...input, operationId: randomUUID() }));
+      await assert.rejects(createPatient(tx, scope, { ...input, name:'Another synthetic person',phone:'+92 300 5550000',operationId: randomUUID() }));
       assert.equal((await listPatients(tx, scope)).length, 1);
       await tx.execute(sql`reset role`);
       await tx.execute(sql`grant insert on clinic_app.audit_events to clinic_runtime`);

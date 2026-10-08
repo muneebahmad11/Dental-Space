@@ -8,6 +8,6 @@ Reading requires patient.demographics.read. Saving also requires patient.demogra
 
 GET/POST `/api/v1/patients/:id/profile` uses verified session/scope headers. Writes require configured Origin, stable operationId, expectedVersion and reason. Shared clinic-master updates serialize by patient and preserve immutable versions. The profile shows the latest 20 revisions, including past values and attribution. Demographic DTOs do not contain medical history or alerts.
 
-Patient search includes normalized primary/alternate phone digits, so formatting differences do not hide existing records. Shared phone numbers remain permitted and are not automatically merged. Explicit duplicate candidate review/override is still separate unfinished work.
+Patient search includes normalized primary/alternate phone digits, so formatting differences do not hide existing records. Shared phone numbers remain permitted and are not automatically merged. Registration now requires reviewing possible matches; an explicit reason and patient.duplicate.override permission are required to create a separate record despite matches.
 
 `pnpm test:patient-profile` and rollback-only `pnpm db:verify-patient-profile` verify date/age/contact validation, version preservation, archive/restore permissions (including retries after revocation), phone search, scoped access and audit rollback. No actual patient or account permission is modified by these checks.
