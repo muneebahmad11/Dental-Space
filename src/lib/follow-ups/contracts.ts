@@ -14,5 +14,5 @@ export const followUpMutation=z.discriminatedUnion('action',[
  z.object({...mutationBase,action:z.literal('contact'),channel:z.enum(['Phone','In person','WhatsApp','SMS','Email','Other']),outcome:z.enum(['Reached','No answer','Left message','Declined','Other'])}).strict(),
 ]);
 const instant=z.iso.datetime({offset:true}).transform(value=>new Date(value));
-export const followUpBooking=z.object({...mutationBase,startsAt:instant,endsAt:instant}).strict().refine(v=>+v.endsAt-+v.startsAt>=60000&&+v.endsAt-+v.startsAt<=8*60*60*1000);
+export const followUpBooking=z.object({...mutationBase,startsAt:instant,endsAt:instant,dentistId:z.uuid().nullable().default(null),chairId:z.uuid().nullable().default(null),procedureId:z.uuid().nullable().default(null),override:z.object({reason:z.string().trim().min(3).max(300)}).strict().nullable().default(null)}).strict().refine(v=>+v.endsAt-+v.startsAt>=60000&&+v.endsAt-+v.startsAt<=8*60*60*1000);
 export const followUpQuery=z.object({bucket:z.enum(['all','today','overdue','upcoming']).default('all'),status:z.enum([...followUpStatuses,'open','all']).default('open'),patientId:z.uuid().optional(),assigneeId:z.uuid().optional(),offset:z.coerce.number().int().min(0).max(100000).default(0)}).strict();

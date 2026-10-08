@@ -41,7 +41,7 @@ export function StaffAppointments({scope,canWrite=true}:{scope:Scope;canWrite?:b
       retry.current=null;setNotice('Appointment saved.');form.reset();refresh();
     }catch(e){setError(e instanceof Error?e.message:'Booking failed.');}finally{setBusy(false);}
   }
-  async function change(row:Booking,status:string){if(busy)return;setBusy(true);setError('');setNotice('');try{await request(`/api/v1/appointments/${row.id}`,{method:'PATCH',headers,body:JSON.stringify({expectedVersion:row.version,status})});setNotice(`Appointment marked ${status}.`);refresh();}catch(e){setError(e instanceof Error?e.message:'Update failed.');}finally{setBusy(false);}}
+  async function change(row:Booking,status:string){if(busy)return;setBusy(true);setError('');setNotice('');try{await request(`/api/v1/appointments/${row.id}`,{method:'PATCH',headers,body:JSON.stringify({expectedVersion:row.version,status,operationId:crypto.randomUUID(),note:status==='cancelled'?'Cancelled at reception':''})});setNotice(`Appointment marked ${status}.`);refresh();}catch(e){setError(e instanceof Error?e.message:'Update failed.');}finally{setBusy(false);}}
   return <section className="staff-calendar"><h2>Appointments</h2><p>One calendar per branch. Times use your device timezone: {Intl.DateTimeFormat().resolvedOptions().timeZone}. </p>
     <div className="staff-toolbar"><label>Date<input type="date" value={date} disabled={busy} onChange={e=>{if(e.target.value){setDate(e.target.value);setRows([]);setLoading(true);setError('');setNotice('');}}} required /></label><button disabled={busy} onClick={refresh}>Refresh calendar</button></div>
     {error&&<p role="alert" className="staff-error">{error}</p>}{notice&&<p role="status">{notice}</p>}

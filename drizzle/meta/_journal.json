@@ -162,6 +162,13 @@
       "when": 1791496901665,
       "tag": "0022_procedure_catalog",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1791497266508,
+      "tag": "0023_appointment_lifecycle",
+      "breakpoints": true
     }
   ]
 }

@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { messageInput,preferenceInput,recipientNumber } from '../../lib/messaging/contracts.ts';
 import { authorize,resolveContext,type Database } from '../auth/context.ts';
 import { appointments } from '../db/schema/appointments.ts';
+import { reminderStatuses } from '../../lib/appointments/contracts.ts';
 import { communicationJobs,messagingPreferences } from '../db/schema/communications.ts';
 import { patients } from '../db/schema/patients.ts';
 import { auditEvents } from '../db/schema/security.ts';
@@ -51,7 +52,7 @@ export async function queueMessage(db:Database,scope:PatientScope,raw:unknown,co
   if(!patient)throw new AppError(404,'PATIENT_NOT_FOUND','Patient is not available in this clinic.');
   const [pref]=await tx.select().from(messagingPreferences).where(and(eq(messagingPreferences.clinicId,scope.clinicId),eq(messagingPreferences.patientId,input.patientId)));
   if(!pref?.enabled||pref.recipient!==recipientNumber(patient.phone))throw new AppError(409,'CONSENT_REQUIRED','Record consent for the patient’s current phone before sending.');
-  if(input.appointmentId){authorize(c,'appointment.read');const [a]=await tx.select().from(appointments).where(and(eq(appointments.clinicId,scope.clinicId),eq(appointments.branchId,scope.branchId),eq(appointments.id,input.appointmentId),eq(appointments.patientId,input.patientId)));if(!a||a.version!==input.appointmentVersion||a.status!=='booked'||+a.startsAt<=Date.now())throw new AppError(409,'STALE_APPOINTMENT','Select a current upcoming booked appointment.');}
+  if(input.appointmentId){authorize(c,'appointment.read');const [a]=await tx.select().from(appointments).where(and(eq(appointments.clinicId,scope.clinicId),eq(appointments.branchId,scope.branchId),eq(appointments.id,input.appointmentId),eq(appointments.patientId,input.patientId)));if(!a||a.version!==input.appointmentVersion||!(reminderStatuses as readonly string[]).includes(a.status)||+a.startsAt<=Date.now())throw new AppError(409,'STALE_APPOINTMENT','Select a current upcoming booked appointment.');}
   const [row]=await tx.insert(communicationJobs).values({clinicId:scope.clinicId,branchId:scope.branchId,patientId:input.patientId,actorMembershipId:c.membershipId,operationId:input.operationId,payloadHash:hash,recipient:pref.recipient,preferenceVersion:pref.version,template:input.template,language:input.language,parameters:input.parameters,appointmentId:input.appointmentId,appointmentVersion:input.appointmentVersion,availableAt:scheduledAt??new Date()}).returning({id:communicationJobs.id,state:communicationJobs.state});
   await communicationAudit(tx,scope,c.membershipId,row.id,'communication.queued');return row;
  });

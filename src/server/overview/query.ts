@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { authorize,resolveContext,type Database } from '../auth/context.ts';
 import { patients } from '../db/schema/patients.ts';
 import { appointments } from '../db/schema/appointments.ts';
+import { appointmentStatuses,type AppointmentStatus } from '../../lib/appointments/contracts.ts';
 import type { PatientScope } from '../patients/service.ts';
 import { AppError } from '../http/errors.ts';
 export async function clinicOverview(db:Database,scope:PatientScope,raw:unknown){
@@ -12,5 +13,5 @@ export async function clinicOverview(db:Database,scope:PatientScope,raw:unknown)
  const [total]=await db.select({value:count()}).from(patients).where(eq(patients.clinicId,ctx.clinicId));
  if(!ctx.permissions.has('appointment.read'))return {patients:total.value,appointments:null};
  const rows=await db.select({status:appointments.status,value:count()}).from(appointments).where(and(eq(appointments.clinicId,ctx.clinicId),eq(appointments.branchId,ctx.branchId),lt(appointments.startsAt,new Date(parsed.data.endsAt)),gt(appointments.endsAt,new Date(parsed.data.startsAt)))).groupBy(appointments.status);
- return {patients:total.value,appointments:{booked:rows.find(r=>r.status==='booked')?.value||0,arrived:rows.find(r=>r.status==='arrived')?.value||0,cancelled:rows.find(r=>r.status==='cancelled')?.value||0}};
+ return {patients:total.value,appointments:Object.fromEntries(appointmentStatuses.map(status=>[status,rows.find(r=>r.status===status)?.value||0])) as Record<AppointmentStatus,number>};
 }

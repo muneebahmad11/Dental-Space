@@ -53,3 +53,5 @@ jobs:
       - run: pnpm db:verify-patient-duplicates
       - run: pnpm db:verify-scheduling
       - run: pnpm db:verify-procedures
+      - run: pnpm db:verify-appointments
+      - run: pnpm db:verify-races

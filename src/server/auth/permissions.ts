@@ -3,7 +3,7 @@ export const permissionCatalog = [
   'patient.clinical.write', 'patient.archive', 'patient.duplicate.override',
   'followup.read', 'followup.write',
   'plan.complete', 'plan.read', 'plan.write', 'plan.accept',
-  'closing.read', 'closing.write', 'refund.post', 'billing.read', 'charge.post', 'communication.read', 'communication.send', 'communication.preferences.write', 'appointment.read', 'appointment.write', 'expense.read', 'expense.write',
+  'closing.read', 'closing.write', 'refund.post', 'billing.read', 'charge.post', 'communication.read', 'communication.send', 'communication.preferences.write', 'appointment.read', 'appointment.write', 'appointment.override', 'appointment.duration.override', 'expense.read', 'expense.write',
   'patient.demographics.read', 'patient.demographics.write', 'patient.clinical.read',
   'visit.draft.write', 'visit.finalize', 'payment.post', 'closing.approve', 'user.manage', 'audit.read',
 ] as const;

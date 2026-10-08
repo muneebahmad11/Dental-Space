@@ -3,6 +3,7 @@ import { and,eq,lte,sql } from 'drizzle-orm';
 import { recipientNumber,retryDelay } from '../../lib/messaging/contracts.ts';
 import { authorize,type Database } from '../auth/context.ts';
 import { appointments } from '../db/schema/appointments.ts';
+import { reminderStatuses } from '../../lib/appointments/contracts.ts';
 import { appUsers,memberships } from '../db/schema/organization.ts';
 import { patients } from '../db/schema/patients.ts';
 import { communicationEvents,communicationJobs,messagingPreferences } from '../db/schema/communications.ts';
@@ -35,7 +36,7 @@ export async function dispatchClaimedMessage(db:Database,config:MessagingConfig,
    if(!pref?.enabled||pref.version!==job.preferenceVersion||pref.recipient!==job.recipient||recipientNumber(patient?.phone??'')!==job.recipient)code='CONSENT_CHANGED';
    const template=config.templates.find(t=>t.name===job.template&&t.language===job.language);
    if(!template||template.parameters.length!==job.parameters.length)code='TEMPLATE_CHANGED';
-   if(job.appointmentId){authorize(c,'appointment.read');const [a]=await tx.select().from(appointments).where(and(eq(appointments.id,job.appointmentId),eq(appointments.clinicId,job.clinicId),eq(appointments.branchId,job.branchId),eq(appointments.patientId,job.patientId)));if(!a||a.status!=='booked'||a.version!==job.appointmentVersion||+a.startsAt<=Date.now())code='STALE_APPOINTMENT';}
+   if(job.appointmentId){authorize(c,'appointment.read');const [a]=await tx.select().from(appointments).where(and(eq(appointments.id,job.appointmentId),eq(appointments.clinicId,job.clinicId),eq(appointments.branchId,job.branchId),eq(appointments.patientId,job.patientId)));if(!a||!(reminderStatuses as readonly string[]).includes(a.status)||a.version!==job.appointmentVersion||+a.startsAt<=Date.now())code='STALE_APPOINTMENT';}
   }catch{code='AUTHORIZATION_UNAVAILABLE';}
   const next=code?'cancelled':'sending';
   await tx.update(communicationJobs).set({state:next,lastCode:code}).where(owns);

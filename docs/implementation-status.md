@@ -237,3 +237,18 @@ Roadmap task S2. `/procedures` maintains a clinic-wide catalog: name, optional c
 Any active branch member can read the catalog (it holds no patient data); changes require the new `procedure.configure` (owner template; not auto-granted). Catalog prices are defaults only: existing estimates and charges keep their own price snapshots. Booking durations (S3) and plan items (T2) will use the catalog next.
 
 Validation: unit tests for exact paisa parsing, durations, categories and unknown fields; rollback-only `pnpm db:verify-procedures` covers retries, unique names/codes, versioned price history, clinic isolation, inactive exclusion, permissions, immutable history and audit rollback.
+
+
+## Appointment lifecycle engine — 2026-10-09
+
+Roadmap tasks S3–S7, S8 (server side), S10 and P5. Migration 0023 adds dentist, chair, procedure, reason, notes, next action, booking source and override reason to appointments, and an immutable `appointment_events` history (one row per version, also the idempotency record for later commands). Existing bookings were backfilled into the history from their audit events.
+
+- **Statuses:** booked → confirmed → arrived → waiting → in treatment → completed, plus cancelled and no-show. Shortcuts booked→arrived and arrived→in treatment are allowed (clinic decision pending). Cancelling, and correcting a no-show to arrived, require a reason. No-show is accepted only after the start time. Completed and cancelled are final.
+- **Conflicts:** checked under the branch calendar lock: same dentist, same chair, same patient, outside opening hours, closed date. Once a branch has dentist calendars every booking must name a dentist; branches without dentists keep the earlier single-calendar rule. Staff with `appointment.override` may proceed with a recorded reason; others get the list of conflicts.
+- **Durations:** choosing a catalog procedure defaults the duration; a different duration needs `appointment.duration.override`.
+- **Rescheduling** keeps the appointment ID, records previous and new slot/dentist/chair, returns the status to booked (confirmation must be repeated) and makes queued WhatsApp reminders stale through the version check. Only booked/confirmed appointments can move.
+- **Walk-ins** arrive immediately and queue for the dentist; slot and hours checks are not applied.
+- **Visits:** a visit can start from arrived/waiting/in-treatment appointments and moves the appointment into treatment in the same transaction. Messaging accepts booked or confirmed appointments. Overview counts and the patient timeline cover every status and event.
+- **Concurrency evidence:** `pnpm db:verify-races` builds a throwaway database from the reviewed migrations, uses two separate runtime connections, and drops the database afterwards. 40 contested slots were each booked exactly once, concurrent status changes produced one winner, double-submitted bookings stored once, and simultaneous registration of the same person stored one patient.
+
+Validation: lint, TypeScript, unit tests; `db:verify-appointments` (conflicts, overrides, durations, full flow, corrections, rescheduling, details, walk-ins, visit start, isolation, immutable history, audit rollback) plus all earlier database suites pass. The calendar screen is still the earlier simple day list until S9.
