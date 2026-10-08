@@ -46,3 +46,4 @@ jobs:
       - run: pnpm db:verify-finance
       - run: pnpm db:verify-visits
       - run: pnpm db:verify-plans
+      - run: pnpm db:verify-follow-ups

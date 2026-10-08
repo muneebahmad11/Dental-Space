@@ -31,6 +31,7 @@ Use the same hostname as `NEXT_PUBLIC_APP_URL`; write endpoints enforce its Orig
 - Treatment items, exact quantity-based PKR estimates, preserved estimate versions and immutable acceptance records.
 - Partial treatment completion, remaining quantities and one charge per completion at accepted prices.
 - Branch appointments with overlap prevention, arrival/cancellation and saved calendar.
+- Follow-ups and preventive recalls with due-date filters, staff assignment, contact history and linked appointment booking.
 - Reviewed manual charges, partial payments with oldest-first allocation, immutable receipt snapshots, partial refunds and allocation reversals.
 - Paid expense recording, exact PKR amounts, daily totals and append-only records.
 - Financial date-range reports with payments/refunds/paid expenses, daily and payment-method reconciliation.
@@ -50,6 +51,7 @@ pnpm db:verify-patients
 pnpm db:verify-finance
 pnpm db:verify-messaging
 pnpm db:verify-plans
+pnpm db:verify-follow-ups
 ```
 
 Database checks use local synthetic fixtures and roll them back. Messaging tests use fake providers and never send real messages. CI runs static/build/unit checks and PostgreSQL integration suites. Browser acceptance and live integrations are separate gates.

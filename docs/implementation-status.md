@@ -168,3 +168,14 @@ Completed the interrupted treatment workflow: immutable partial completion recor
 Local rollback-only plan tests passed for partial progress, exact locked-price charges, duplicate and excess-quantity rejection, branch isolation, audit rollback and revoked access. Completion corrections, clinical-visit linkage and independent-connection concurrency evidence remain open.
 
 Validation: lint, TypeScript, 31 unit tests and production build passed. Expanded rollback-only plan checks also verify direct database rejection of excessive quantities and incorrect linked prices. Browser visual acceptance remains unverified.
+
+
+## Follow-ups and recalls — 2026-10-08
+
+Added durable branch follow-ups with named/custom types, preventive recall due dates, assignment to eligible active branch staff, clinic-date today/upcoming/overdue filters, pagination and all six statuses. Manual contact entries record channel/outcome/note and attributed time; they do not send messages or automatically mark care completed. Terminal Completed/Closed records cannot be reopened in this slice. Later care requires a new record.
+
+Added `/follow-ups`, private authenticated APIs, clinical-visit links, immutable versioned history and audit. A dedicated booking command calls the existing scheduling service inside the same outer transaction and links the resulting appointment. Conflicts or audit failures roll back both records. Existing same-patient/branch bookings can be linked through the status API. A cancelled booking does not automatically complete or close care.
+
+Read requires followup.read plus demographic and clinical read; write additionally requires followup.write. Booking also requires appointment read/write. New permissions were defined, without assigning any real account access. No provider message or automatic reminder/recall job is created. Unified patient timeline, recurring rules, broader communications history and staff/browser acceptance remain open.
+
+Validation: `pnpm check` passed lint, TypeScript, 34 unit tests and production build. Rollback-only `pnpm db:verify-follow-ups` passed, including explicit completion/closure and terminal protections. Browser visual/staff acceptance remains unverified. The dated audit document records the pre-follow-up commit and is retained as a historical snapshot, not the updated current task count.

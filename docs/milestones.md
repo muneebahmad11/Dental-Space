@@ -1,6 +1,6 @@
 # Milestone checklist
 
-This tracks implementation against the technical plan; partial milestones are not marked complete. Updated 2026-10-04.
+This tracks implementation against the technical plan; partial milestones are not marked complete. Updated 2026-10-08.
 
 | Milestone | Current evidence and open work |
 |---|---|
@@ -13,7 +13,7 @@ This tracks implementation against the technical plan; partial milestones are no
 | M06 Plans | Durable treatment-item estimates, immutable saved versions and version-bound patient acceptance implemented. Partial completions, remaining quantities and accepted-price billing links implemented. Completion corrections and accepted-plan revisions open. |
 | M07 Finance | Manual charges, partial payment/allocation, fixed receipts, refunds/reversals, branch isolation and immutable records tested. Discounts/tax policy, charge credits, deposits and independent refund/payment race evidence open. |
 | M08 Operations | Paid expenses, closing draft/separate approval, cash refund/payment/expense reconciliation and locked-day guards tested. Cash transfers, unpaid liabilities, reopening policy/approval matrix and attachment workflows open. |
-| M09 Follow-up | Durable follow-ups/recalls/manual history and full timeline open. Communications queue foundation exists. |
+| M09 Follow-up | Durable follow-ups/recalls, due-date filters, assignment, six statuses, immutable contact/status history and atomic appointment linking implemented. Unified patient timeline, reminder/recall automation and staff acceptance open. |
 | M10 Reports | Patient/appointment overview counts exist. Financial money-movement reports reconcile payments, refunds and paid expenses by date and method. Expanded report catalog, dashboards and staff/printer acceptance open. |
 | M11 Recovery | Backups, measured restore/import and approved offline draft recovery open. |
 | M12 Pilot | Staff training and controlled real clinic pilot acceptance open. |
