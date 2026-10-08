@@ -7,8 +7,8 @@ import { api,scopeHeaders,useClinic } from './session';
 type PlanRow={id:string;title:string;patientName:string;status:string;version:number;totalMinor:string};
 type Detail={plan:{id:string;patientId:string;status:string;version:number};patientName:string;versions:{id:string;version:number;snapshot:PlanSnapshot;createdAt:string}[];acceptance:{version:number;acceptedBy:string;evidence:string;acceptedAt:string}|null;canWrite:boolean;canAccept:boolean;canComplete:boolean;canBill:boolean;progress:{itemId:string;completed:number;billed:number}[];completions:{id:string;itemId:string;quantity:number;performedOn:string;note:string;chargeId:string|null}[]};
 type Patient={id:string;name:string;displayId:string};
-export function TreatmentPlans(){
- const {scope,can}=useClinic();const [plans,setPlans]=useState<PlanRow[]|null>(null);const [selected,setSelected]=useState('');const [revision,setRevision]=useState(0);const [error,setError]=useState('');
+export function TreatmentPlans({initialPlanId=''}:{initialPlanId?:string}){
+ const {scope,can}=useClinic();const [plans,setPlans]=useState<PlanRow[]|null>(null);const [selected,setSelected]=useState(initialPlanId);const [revision,setRevision]=useState(0);const [error,setError]=useState('');
  const allowed=can('plan.read')&&can('patient.clinical.read')&&can('patient.demographics.read');
  useEffect(()=>{if(!allowed)return;const c=new AbortController();api('/api/v1/plans',{headers:scopeHeaders(scope),signal:c.signal}).then(data=>{if(!c.signal.aborted){setPlans(data.plans);setError('');}}).catch(e=>{if(!c.signal.aborted)setError(e.message);});return()=>c.abort();},[scope,allowed,revision]);
  if(!allowed)return <section className="staff-workspace live-inner"><h1>Treatment plans</h1><p>Your account needs treatment-plan, clinical and demographic read access.</p></section>;

@@ -179,3 +179,14 @@ Added `/follow-ups`, private authenticated APIs, clinical-visit links, immutable
 Read requires followup.read plus demographic and clinical read; write additionally requires followup.write. Booking also requires appointment read/write. New permissions were defined, without assigning any real account access. No provider message or automatic reminder/recall job is created. Unified patient timeline, recurring rules, broader communications history and staff/browser acceptance remain open.
 
 Validation: `pnpm check` passed lint, TypeScript, 34 unit tests and production build. Rollback-only `pnpm db:verify-follow-ups` passed, including explicit completion/closure and terminal protections. Browser visual/staff acceptance remains unverified. The dated audit document records the pre-follow-up commit and is retained as a historical snapshot, not the updated current task count.
+
+
+## Unified patient timeline — 2026-10-08
+
+Added a patient-directory Timeline link and branch-scoped chronological activity from existing persisted sources: patient registration, appointment audits, visit draft/sign/amend activity, estimate versions/acceptance/completion, charges/payments/receipt links/refunds, follow-up history and WhatsApp queue/provider/cancellation events. Uses current module permissions; no new grants are introduced. Clinical/plan/follow-up categories need clinical read, and billing/communications use their own read grants. Unauthorized sources are excluded before SQL execution; explicit forbidden category requests return 403 without counts or previews.
+
+The DTO omits note bodies, refund reasons, message parameters/recipients, consent evidence and arbitrary audit payloads. Plan titles/totals remain behind plan plus clinical read. Patient registration is clinic-wide, with operational events confined to the selected branch. Links open existing records, including selected plan/follow-up deep links.
+
+Filters use activity timestamps in the clinic timezone; billing/performed/due dates appear separately. A repeatable-read query and timestamp/key cursor preserve PostgreSQL microsecond ordering; each page is capped at 50 events. There are no copied timeline writes or synthetic placeholders for unimplemented prescriptions/files/consents/labs. Their future event integration, complete scheduling history, source-query performance acceptance and browser/staff journey verification remain open.
+
+Validation: `pnpm check` passed lint, TypeScript, 36 unit tests and production build. Rollback-only `pnpm db:verify-timeline` passed source/permission isolation, clinic-date filters, microsecond ordering and multi-page coverage. Browser visual/staff acceptance remains unverified.

@@ -47,3 +47,4 @@ jobs:
       - run: pnpm db:verify-visits
       - run: pnpm db:verify-plans
       - run: pnpm db:verify-follow-ups
+      - run: pnpm db:verify-timeline

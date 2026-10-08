@@ -25,4 +25,4 @@ Writes require the configured Origin and stable operation UUIDs; changed payload
 
 `pnpm test:follow-ups` checks date buckets, status rules and validation. `pnpm db:verify-follow-ups` uses rollback-only synthetic SQL fixtures for scope, assignment access, retries, stale edits, contact history, atomic booking/audit failures, completion/closure and revoked access. CI runs both. No real contact is made and no account permissions are changed.
 
-Unified cross-module timeline, reminder/recall automation, historical contact timestamps, terminal corrections, broader manual communications, reviewed receptionist visibility and separate-connection booking race/browser acceptance remain open.
+Timeline integration for current modules is implemented. Reminder/recall automation, historical contact timestamps, terminal corrections, broader manual communications, reviewed receptionist visibility and separate-connection booking race/browser acceptance remain open.
