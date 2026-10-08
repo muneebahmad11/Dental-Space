@@ -1,4 +1,5 @@
 'use client';
+import { BalanceBadge } from './balance-badge';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect,useMemo,useRef,useState,type FormEvent,type ReactNode } from 'react';
@@ -124,7 +125,7 @@ function BookingForm({draft,patientId,settings,procedures,onClose,onSaved}:{draf
  const {busy,error,send}=useCommand();const [patient,setPatient]=usePreselectedPatient(patientId);const [procedure,setProcedure]=useState<Procedure|null>(null);const [minutes,setMinutes]=useState(settings.hours?.slotMinutes&&settings.hours.slotMinutes>=15?settings.hours.slotMinutes:30);const formRef=useRef<HTMLFormElement>(null);
  function submit(override:string|null){const form=formRef.current;if(!form||!patient)return;const v=formValues(form);const startsAt=zonedInstant(settings.timezone,v.date,v.time);
   void send<{appointment:{id:string}}>('/api/v1/appointments','POST',{patientId:patient.id,startsAt:startsAt.toISOString(),endsAt:new Date(+startsAt+minutes*60000).toISOString(),dentistId:v.dentistId,chairId:v.chairId,procedureId:v.procedureId,reason:v.reason,notes:v.notes,nextAction:v.nextAction,source:v.source,override:override?{reason:override}:null},d=>onSaved(d.appointment.id,`Booked ${patient.name} at ${v.time} on ${v.date}.`));}
- return <Panel title="New booking" onClose={onClose}><PatientPicker value={patient} onChange={setPatient} disabled={busy}/>
+ return <Panel title="New booking" onClose={onClose}><PatientPicker value={patient} onChange={setPatient} disabled={busy}/>{patient&&<p><BalanceBadge patientId={patient.id}/></p>}
   <form ref={formRef} onSubmit={(e:FormEvent)=>{e.preventDefault();submit(null);}}>
    <div className="form-row"><label>Date<input name="date" type="date" defaultValue={draft.date} required disabled={busy}/></label><label>Start time<input name="time" type="time" step={300} defaultValue={draft.time} required disabled={busy}/></label></div>
    <ResourceFields settings={settings} procedures={procedures} defaults={{dentistId:draft.dentistId}} disabled={busy} onProcedure={p=>{setProcedure(p);if(p)setMinutes(p.defaultMinutes);}}/>
@@ -157,7 +158,7 @@ function AppointmentPanel({row,settings,procedures,onClose,onChanged}:{row:Appoi
  const local=localParts(tz,new Date(row.startsAt));
  return <Panel title={row.patientName} onClose={onClose}>
   <p><strong>{statusLabels[row.status]}</strong>{row.source==='walk_in'&&' · Walk-in'} · {local.date} {clockOf(tz,row.startsAt)}–{clockOf(tz,row.endsAt)}</p>
-  <dl className="appt-facts"><dt>Patient</dt><dd><Link href={`/patients/${row.patientId}/profile`}>Profile</Link> · <Link href={`/patients/${row.patientId}/timeline`}>Timeline</Link></dd>{row.dentistName&&<><dt>Dentist</dt><dd>{row.dentistName}</dd></>}{row.chairName&&<><dt>Chair</dt><dd>{row.chairName}</dd></>}{row.procedureName&&<><dt>Procedure</dt><dd>{row.procedureName}</dd></>}{row.reason&&<><dt>Reason</dt><dd>{row.reason}</dd></>}<dt>Booked via</dt><dd>{sourceLabels[row.source]}</dd>{row.notes&&<><dt>Notes</dt><dd>{row.notes}</dd></>}{row.nextAction&&<><dt>Next action</dt><dd>{row.nextAction}</dd></>}{row.overrideReason&&<><dt>Override</dt><dd>{row.overrideReason}</dd></>}</dl>
+  <dl className="appt-facts"><dt>Patient</dt><dd><Link href={`/patients/${row.patientId}/profile`}>Profile</Link> · <Link href={`/patients/${row.patientId}/timeline`}>Timeline</Link></dd>{row.dentistName&&<><dt>Dentist</dt><dd>{row.dentistName}</dd></>}{row.chairName&&<><dt>Chair</dt><dd>{row.chairName}</dd></>}{row.procedureName&&<><dt>Procedure</dt><dd>{row.procedureName}</dd></>}{row.reason&&<><dt>Reason</dt><dd>{row.reason}</dd></>}<dt>Booked via</dt><dd>{sourceLabels[row.source]}</dd>{can('billing.read')&&<><dt>Account</dt><dd><BalanceBadge patientId={row.patientId}/></dd></>}{row.notes&&<><dt>Notes</dt><dd>{row.notes}</dd></>}{row.nextAction&&<><dt>Next action</dt><dd>{row.nextAction}</dd></>}{row.overrideReason&&<><dt>Override</dt><dd>{row.overrideReason}</dd></>}</dl>
   {error&&<p role="alert" className="staff-error">{error.message}</p>}
   {canWrite&&next.length>0&&<div className="appt-actions">{next.map(s=><button key={s} type="button" className={s==='cancelled'||s==='no_show'?'secondary danger':''} disabled={busy} onClick={()=>change(s)}>{actionLabels[s]??statusLabels[s]}</button>)}</div>}
   {pending&&<div className="note-box"><label>{pending==='cancelled'?'Reason for cancelling':'What happened?'}<input value={note} onChange={e=>setNote(e.target.value)} minLength={3} maxLength={500} autoFocus/></label><button type="button" disabled={busy||note.trim().length<3} onClick={()=>change(pending)}>Confirm: {statusLabels[pending]}</button><button type="button" className="secondary" onClick={()=>setPending(null)}>Back</button></div>}
