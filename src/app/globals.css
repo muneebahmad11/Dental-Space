@@ -164,3 +164,11 @@ button:focus-visible,a:focus-visible { outline:2px solid #548e69; outline-offset
 .staff-workspace details { margin-top:16px; }
 .staff-workspace summary { cursor:pointer; font-weight:600; color:#185d55; margin-bottom:12px; }
 .color-dot { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:8px; vertical-align:middle; }
+.staff-workspace .data-table { width:100%; border-collapse:collapse; font-size:14px; }
+.staff-workspace .data-table th { text-align:left; font-weight:600; color:#587273; padding:10px 8px; border-bottom:1px solid #d7e3e2; }
+.staff-workspace .data-table td { padding:12px 8px; border-bottom:1px solid #e3eaea; vertical-align:top; }
+.staff-workspace .data-table tr.inactive td { color:#8b998c; }
+.staff-workspace .data-table .row-actions { justify-content:flex-end; flex-wrap:wrap; }
+.staff-workspace .form-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:0 16px; }
+.staff-workspace label.checkbox { display:flex; align-items:center; gap:8px; }
+.staff-workspace label.checkbox input { width:auto; }

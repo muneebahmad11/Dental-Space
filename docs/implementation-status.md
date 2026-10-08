@@ -228,3 +228,12 @@ Roadmap task S1. `/schedule-setup` configures, per branch: dentist calendars (na
 Reading requires `appointment.read` or the new `schedule.configure`; changes require `schedule.configure` (added to the owner role template, never auto-granted to accounts). Staff lists are returned only to configurers. Adding a closed date reports existing bookings on that date and never cancels them. `openingCheck` and `openingRules` are prepared for booking validation in S5; until opening hours are saved, a branch is not restricted.
 
 Validation: `pnpm check` passed lint, TypeScript, unit tests (4 new scheduling tests) and production build. Rollback-only `pnpm db:verify-scheduling` passed retries, stale versions, case-insensitive names, staff-link rules, branch/clinic isolation, existing-booking counts, revision immutability, permission revocation and audit rollback. Browser visual check pending staff sign-in.
+
+
+## Procedure catalog — 2026-10-09
+
+Roadmap task S2. `/procedures` maintains a clinic-wide catalog: name, optional code, category, default duration (5–480 minutes in 5-minute steps) and optional default price in exact PKR paisa. Every create/edit/deactivate writes an immutable `procedure_versions` snapshot (also the idempotency record) and an audit event in one transaction; the screen shows each procedure's price/duration history. Names and codes are unique per clinic, case-insensitively. Inactive procedures are hidden by default and `activeProcedure` refuses them for new work.
+
+Any active branch member can read the catalog (it holds no patient data); changes require the new `procedure.configure` (owner template; not auto-granted). Catalog prices are defaults only: existing estimates and charges keep their own price snapshots. Booking durations (S3) and plan items (T2) will use the catalog next.
+
+Validation: unit tests for exact paisa parsing, durations, categories and unknown fields; rollback-only `pnpm db:verify-procedures` covers retries, unique names/codes, versioned price history, clinic isolation, inactive exclusion, permissions, immutable history and audit rollback.

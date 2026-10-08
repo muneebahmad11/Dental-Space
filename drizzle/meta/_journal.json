@@ -155,6 +155,13 @@
       "when": 1791496324008,
       "tag": "0021_schedule_resources",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1791496901665,
+      "tag": "0022_procedure_catalog",
+      "breakpoints": true
     }
   ]
 }
