@@ -19,8 +19,12 @@ export async function authClient() {
 
 export async function requireIdentity() {
   const client = await authClient();
-  // Verify with the Auth server; cookie contents alone do not establish identity.
-  const { data, error } = await client.auth.getUser();
-  if (error || !data.user) throw new AppError(401, 'UNAUTHENTICATED', 'Sign in to continue.');
-  return data.user.id;
+  // Cookie contents alone do not establish identity: getClaims verifies the access token's signature and expiry
+  // against the project's published asymmetric signing keys (cached), avoiding an Auth-server round trip per request.
+  // A revoked Supabase session stays valid until its short access-token expiry; staff deactivation is still
+  // enforced on every request by the membership checks in resolveContext.
+  const { data, error } = await client.auth.getClaims();
+  const subject = data?.claims?.sub;
+  if (error || !subject || data.claims.is_anonymous) throw new AppError(401, 'UNAUTHENTICATED', 'Sign in to continue.');
+  return subject;
 }

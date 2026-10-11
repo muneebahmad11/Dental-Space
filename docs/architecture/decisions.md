@@ -33,3 +33,7 @@ Foundation work can proceed without these. Clinic-specific workflows and real-da
 - Opening cash is a manual demo input, not an automatic carry-forward. Closing snapshots opening, counted, collection/expense totals, difference and note.
 - Closing requires a note for nonzero differences and blocks negative expected cash. It freezes all financial entries on the fixed demo day through shared command guards as well as disabled UI.
 - Closing is a fictional session action, not authenticated manager approval. Database locking, independent approvals, corrections/reopening and durable audit remain deferred.
+
+## Request identity verification (2026-10-12)
+
+API requests verify the Supabase access token locally with `auth.getClaims()` against the project's published ES256 signing keys (cached in the server process) instead of calling the Auth server with `getUser()` on every request, which added about 0.4 s per call. Forged and unsigned tokens are rejected. Trade-off: a session revoked inside Supabase remains usable until its access token expires (Supabase default one hour). Deactivating a staff membership or user in the application still blocks access immediately because every service call re-checks active membership, branch and permissions in the database. If a project falls back to symmetric signing keys, `getClaims()` verifies through the Auth server instead.
