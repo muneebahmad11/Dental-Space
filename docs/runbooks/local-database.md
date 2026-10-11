@@ -77,3 +77,9 @@ Migration 0006 adds append-only paid expenses. GET `/api/v1/expenses?paidOn=YYYY
 `expense.read` and `expense.write` are separate permissions; schema migration never grants them to a real account. After explicit approval, `node --experimental-strip-types scripts/grant-local-expenses.ts AUTH_USER_UUID` grants these two permissions to the single local development membership and audits the change. This script has not been executed for the initial user.
 
 `pnpm db:verify-patients` also runs expense integration checks with rollback-only synthetic fixtures. `pnpm test:expenses` checks date/amount validation. Expense corrections and closing locks will be added with future finance workflows. Supabase still provides authentication; records are stored in local PostgreSQL.
+
+## Demo data (local only)
+
+`pnpm db:seed-demo <auth-user-uuid>` fills the account's branch with clearly fictional demo records through the normal services, so everything is validated, versioned and audited: 3 dentists, 2 chairs, opening hours and a holiday; 15 procedures with PKR prices; 32 patients (phones in the `0300 555` range, two children sharing a parent's phone); medical histories/alerts; contact preferences; about 40 appointments over ten days in every status, including a walk-in; signed visits, charges and payments for completed appointments; treatment plans (accepted, partly completed and billed, plus an open estimate); a partial refund; outstanding balances; paid expenses; and follow-ups that are overdue, due today and upcoming.
+
+Add `--dry-run` to run every step inside a transaction and roll it back. The command refuses remote databases and does nothing if the branch already has dentist calendars. History and audit tables are append-only, so demo data cannot be deleted afterwards; to start clean, recreate the local database. Never run it against a database that holds real patients.
