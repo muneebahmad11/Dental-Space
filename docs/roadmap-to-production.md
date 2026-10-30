@@ -2,6 +2,8 @@
 
 Prepared 2026-10-09. This is the task-by-task build order from the current state of the repository to a production-ready system. It is based on [the implementation plan](../Dental_Clinic_Implementation_Plan.md), [the end-to-end flow](../Dental_Clinic_End_to_End_Implementation_Flow.md), [the technical plan](../Dental_Clinic_Nextjs_Technical_Implementation_Plan.md), [the milestone checklist](milestones.md), [the implementation status](implementation-status.md) and the [2026-10-08 audit](implementation-audit-2026-10-08.md), checked against the code.
 
+> **2026-10-31:** the next 4 days follow [roadmap-4-day.md](roadmap-4-day.md) (first sellable multi-clinic version). This file remains the full long-term plan.
+
 Tick a task only when its *Done when* line is true. Update [milestones.md](milestones.md) when a stage closes.
 
 ## How to read this file

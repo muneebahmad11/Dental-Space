@@ -21,7 +21,7 @@ try{try{await drizzle(client).transaction(async tx=>{
  const admin=await person('Synthetic administrator',[branch.id,second.id],['appointment.read','appointment.write','patient.demographics.read','schedule.configure']);const reader=await person('Synthetic receptionist',[branch.id],['appointment.read']);const dentistStaff=await person('Synthetic dentist',[branch.id],[]);const elsewhere=await person('Second-branch dentist',[second.id],[]);
  const scope={authUserId:admin.authUserId,clinicId:clinic.id,branchId:branch.id};const readerScope={...scope,authUserId:reader.authUserId};
  const [patient]=await tx.insert(patients).values({creationHash:'synthetic',creationKey:randomUUID(),clinicId:clinic.id,displayId:'SYNTHETIC',name:'Synthetic patient',phone:'+92 300 0000000',phoneNormalized:'923000000000'}).returning();
- const today=businessDate(clinic.timezone);const future=new Date(Date.parse(today)+3*86400000).toISOString().slice(0,10);const past=new Date(Date.parse(today)-86400000).toISOString().slice(0,10);
+ const today=businessDate(clinic.timezone);const days=(n:number)=>new Date(Date.parse(today)+n*86400000).toISOString().slice(0,10);const future=days([1,2,3,4,5,6,7].find(n=>new Date(Date.parse(today)+n*86400000).getUTCDay()===1)!);/* next Monday: the only open weekday below */const past=new Date(Date.parse(today)-86400000).toISOString().slice(0,10);
  await tx.execute(sql`set local role clinic_runtime`);
  // Dentists: idempotent creation, case-insensitive names, staff links limited to active branch staff.
  const dentist={kind:'dentist',operationId:randomUUID(),name:'Dr. Synthetic',color:'#185d55',membershipId:dentistStaff.member.id};
