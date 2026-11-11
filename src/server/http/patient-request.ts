@@ -1,14 +1,18 @@
 import 'server-only';
 import { z } from 'zod';
 import { NextResponse } from 'next/server';
+import { assertStaffAccess } from '@/server/auth/context';
 import { requireIdentity } from '@/server/auth/session';
+import { getDatabase } from '@/server/db/client';
 import { AppError } from './errors';
 
 export async function patientScope(request: Request) {
   const authUserId = await requireIdentity();
   const parsed = z.object({ clinicId: z.uuid(), branchId: z.uuid() }).safeParse({ clinicId: request.headers.get('x-clinic-id'), branchId: request.headers.get('x-branch-id') });
   if (!parsed.success) throw new AppError(400, 'INVALID_SCOPE', 'Select a clinic and branch.');
-  // These headers select scope, never confer membership or permissions.
+  // These headers select scope, never confer membership or permissions. Membership and the clinic's
+  // subscription are checked here, before the route reads any input.
+  await assertStaffAccess(getDatabase(), authUserId, parsed.data.clinicId, parsed.data.branchId);
   return { authUserId, ...parsed.data };
 }
 export function requireSameOrigin(request: Request) {
@@ -38,6 +42,12 @@ export async function jsonBody(request: Request, maximumBytes = 16384): Promise<
 export function response(data: unknown, status = 200) {
   return NextResponse.json(data, { status, headers: { 'Cache-Control': 'private, no-store', Vary: 'Cookie, x-clinic-id, x-branch-id' } });
 }
+// Unexpected errors are logged for the operator without their message: database messages can quote patient values.
+function report(error: unknown) {
+  const e = error as { name?: string; code?: string; constraint_name?: string; table_name?: string; cause?: { code?: string; constraint_name?: string; table_name?: string }; stack?: string };
+  console.error(JSON.stringify({ level: 'error', event: 'unhandled_request_error', name: e?.name ?? typeof error, code: e?.cause?.code ?? e?.code, constraint: e?.cause?.constraint_name ?? e?.constraint_name, table: e?.cause?.table_name ?? e?.table_name, at: e?.stack?.split('\n').slice(1, 4).map(line => line.trim()) }));
+}
 export function failure(error: unknown) {
+  if (!(error instanceof AppError)) report(error);
   return error instanceof AppError ? response({ error: { code: error.code, message: error.message } }, error.status) : response({ error: { code: 'INTERNAL_ERROR', message: 'The request could not be completed.' } }, 500);
 }

@@ -9,5 +9,6 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en"><body><AppShell>{children}</AppShell></body></html>;
+  // Browser extensions (ColorZilla, QuillBot…) add attributes to html/body before React loads; ignore those only.
+  return <html lang="en" suppressHydrationWarning><body suppressHydrationWarning><AppShell>{children}</AppShell></body></html>;
 }

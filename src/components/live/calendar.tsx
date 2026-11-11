@@ -1,4 +1,5 @@
 'use client';
+import { clinicDateTime } from '@/lib/time';
 import { BalanceBadge } from './balance-badge';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -167,7 +168,7 @@ function AppointmentPanel({row,settings,procedures,onClose,onChanged}:{row:Appoi
   {canWrite&&<div className="appt-actions">{(reschedulableStatuses as readonly string[]).includes(row.status)&&<button type="button" className="secondary" onClick={()=>setMode(mode==='reschedule'?'':'reschedule')}>Reschedule</button>}<button type="button" className="secondary" onClick={()=>setMode(mode==='details'?'':'details')}>Edit details</button></div>}
   {mode==='reschedule'&&<Reschedule row={row} settings={settings} onSaved={m=>{setMode('');onChanged(m);}}/>}
   {mode==='details'&&<Details row={row} procedures={procedures} onSaved={m=>{setMode('');onChanged(m);}}/>}
-  <h3>History</h3>{!history?<p role="status">Loading history…</p>:<ol className="appt-history">{history.map(h=><li key={h.version}><strong>{h.kind==='rescheduled'?'Rescheduled':h.kind==='details'?'Details updated':h.kind==='walk_in'?'Walk-in arrived':h.kind==='booked'?'Booked':`${h.fromStatus?statusLabels[h.fromStatus]:''} → ${statusLabels[h.toStatus]}`}</strong>{h.kind==='rescheduled'&&h.detail.previousStartsAt&&<span> from {localParts(tz,new Date(h.detail.previousStartsAt)).date} {clockOf(tz,h.detail.previousStartsAt)}</span>}{h.detail.note&&<span> · {h.detail.note}</span>}{h.detail.override&&<span> · Override: {h.detail.override}</span>}{h.detail.durationOverride&&<span> · Duration changed from procedure default</span>}<small>{h.actorName} · {new Date(h.createdAt).toLocaleString('en-GB',{timeZone:tz})}</small></li>)}</ol>}
+  <h3>History</h3>{!history?<p role="status">Loading history…</p>:<ol className="appt-history">{history.map(h=><li key={h.version}><strong>{h.kind==='rescheduled'?'Rescheduled':h.kind==='details'?'Details updated':h.kind==='walk_in'?'Walk-in arrived':h.kind==='booked'?'Booked':`${h.fromStatus?statusLabels[h.fromStatus]:''} → ${statusLabels[h.toStatus]}`}</strong>{h.kind==='rescheduled'&&h.detail.previousStartsAt&&<span> from {localParts(tz,new Date(h.detail.previousStartsAt)).date} {clockOf(tz,h.detail.previousStartsAt)}</span>}{h.detail.note&&<span> · {h.detail.note}</span>}{h.detail.override&&<span> · Override: {h.detail.override}</span>}{h.detail.durationOverride&&<span> · Duration changed from procedure default</span>}<small>{h.actorName} · {clinicDateTime(h.createdAt,tz)}</small></li>)}</ol>}
  </Panel>;
 }
 function Reschedule({row,settings,onSaved}:{row:Appointment;settings:Settings;onSaved:(message:string)=>void}){

@@ -34,6 +34,7 @@ jobs:
           node-version-file: .node-version
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm audit --prod --audit-level high
       - run: pnpm check
         env:
           NEXT_TELEMETRY_DISABLED: 1
@@ -57,3 +58,8 @@ jobs:
       - run: pnpm db:verify-races
       - run: pnpm db:verify-patient-navigation
       - run: pnpm db:verify-contact-preferences
+      - run: pnpm db:verify-operator
+      - run: pnpm db:verify-clinic-settings
+      - run: pnpm db:verify-credit-notes
+      - run: pnpm db:verify-staff-admin
+      - run: pnpm db:verify-tenant-isolation

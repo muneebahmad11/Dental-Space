@@ -39,6 +39,8 @@ export async function setMessagingPreference(db:Database,scope:PatientScope,raw:
 }
 export async function queueMessage(db:Database,scope:PatientScope,raw:unknown,config:MessagingConfig|null){
  const input=parse(messageInput,raw);
+ // Access is checked before configuration, so a caller without access learns nothing about messaging setup.
+ await communicationContext(db,scope,'communication.send');
  if(!config||config.WHATSAPP_CLINIC_ID!==scope.clinicId)throw new AppError(503,'WHATSAPP_NOT_CONFIGURED','WhatsApp is not configured for this clinic.');
  const template=config.templates.find(t=>t.name===input.template&&t.language===input.language);
  if(!template||template.parameters.length!==input.parameters.length)throw new AppError(400,'TEMPLATE_INVALID','Select a configured approved template and complete its fields.');

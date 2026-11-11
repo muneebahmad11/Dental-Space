@@ -1,3 +1,5 @@
 'use client';
+import { usePathname } from 'next/navigation';
 import { ClinicSession } from '@/components/live/session';
-export function AppShell({children}:{children:React.ReactNode}){return <ClinicSession>{children}</ClinicSession>;}
+// The operator console and password pages are not clinic workspaces and never load clinic scope.
+export function AppShell({children}:{children:React.ReactNode}){const path=usePathname();return path.startsWith('/operator')||path.startsWith('/auth/')?<>{children}</>:<ClinicSession>{children}</ClinicSession>;}

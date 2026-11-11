@@ -1,4 +1,5 @@
 'use client';
+import { clinicDateTime } from '@/lib/time';
 import { useEffect,useRef,useState,type FormEvent } from 'react';
 import { channelLabels,contactChannels,contactPurposes,preferenceSources,purposeLabels,sourceLabels,type ContactPreferenceBody } from '@/lib/contact-preferences/contracts';
 import { api,scopeHeaders,useClinic } from './session';
@@ -18,7 +19,7 @@ export function ContactPreferences({patientId}:{patientId:string}){
    {!data.current&&<p className="muted">Not recorded does not mean the patient agreed. Ask and record their preferences.</p>}
    {data.canWrite&&!editing&&<button className="secondary" onClick={()=>{setEditing(true);setNotice('');}}>{data.current?'Change preferences':'Record preferences'}</button>}
    {editing&&<PreferenceForm patientId={patientId} data={data} onCancel={()=>setEditing(false)} onSaved={()=>{setEditing(false);setNotice('Contact preferences saved.');setData(null);setRevision(n=>n+1);}}/>}
-   {data.history.length>0&&<details><summary>History ({data.history.length})</summary><ul>{data.history.map(h=><li key={h.version}><div><strong>Version {h.version}</strong> · {summary(h.body)}<p>{h.reason} · {sourceLabels[h.body.source]} · {h.actorName} · {new Date(h.createdAt).toLocaleString('en-GB',{timeZone:scope.timezone})}</p></div></li>)}</ul></details>}
+   {data.history.length>0&&<details><summary>History ({data.history.length})</summary><ul>{data.history.map(h=><li key={h.version}><div><strong>Version {h.version}</strong> · {summary(h.body)}<p>{h.reason} · {sourceLabels[h.body.source]} · {h.actorName} · {clinicDateTime(h.createdAt,scope.timezone)}</p></div></li>)}</ul></details>}
   </>}</section>;
 }
 function PreferenceForm({patientId,data,onCancel,onSaved}:{patientId:string;data:Data;onCancel:()=>void;onSaved:()=>void}){

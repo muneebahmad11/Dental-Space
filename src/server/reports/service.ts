@@ -1,9 +1,8 @@
 import { eq, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { cashFlow, reportRange, type FinanceReport } from '../../lib/reports/contracts.ts';
-import { paymentMethods } from '../../lib/finance/contracts.ts';
 import { authorize, resolveContext, type Database } from '../auth/context.ts';
-import { clinics } from '../db/schema/organization.ts';
+import { clinicPaymentMethods, clinics } from '../db/schema/organization.ts';
 import { AppError } from '../http/errors.ts';
 import type { PatientScope } from '../patients/service.ts';
 
@@ -17,7 +16,7 @@ export async function financeReport(db: Database, scope: PatientScope, raw: unkn
     const context = await resolveContext(tx, scope.authUserId, scope.clinicId, scope.branchId);
     authorize(context, 'billing.read');
     authorize(context, 'expense.read');
-    const [clinic] = await tx.select({currency:clinics.currency}).from(clinics).where(eq(clinics.id, scope.clinicId));
+    const [clinic] = await tx.select({currency:clinics.currency,timezone:clinics.timezone}).from(clinics).where(eq(clinics.id, scope.clinicId));
     if (clinic?.currency !== 'PKR') throw new AppError(409, 'CURRENCY_UNSUPPORTED', 'Financial reports currently support PKR clinics.');
     const { from, to } = range.data;
     const rows = await tx.execute<{day:string;method:string;receipts:string;refunds:string;expenses:string}>(sql`
@@ -37,7 +36,8 @@ export async function financeReport(db: Database, scope: PatientScope, raw: unkn
       ) movements group by paid_on, method order by paid_on, method
     `);
     const total = { receipts:BigInt(0), refunds:BigInt(0), expenses:BigInt(0) };
-    const methods = new Map(paymentMethods.map(method => [method as string, {...total}]));
+    const clinicMethods = await tx.select({name:clinicPaymentMethods.name,active:clinicPaymentMethods.active}).from(clinicPaymentMethods).where(eq(clinicPaymentMethods.clinicId, scope.clinicId)).orderBy(clinicPaymentMethods.sortOrder, clinicPaymentMethods.name);
+    const methods = new Map(clinicMethods.map(method => [method.name, {...total}]));
     const days = new Map<string, typeof total>();
     for (const row of rows) {
       const day = days.get(row.day) ?? {receipts:BigInt(0),refunds:BigInt(0),expenses:BigInt(0)};
@@ -49,9 +49,12 @@ export async function financeReport(db: Database, scope: PatientScope, raw: unkn
         total[key] += amount; day[key] += amount; method[key] += amount;
       }
     }
+    const [credits] = await tx.execute<{count:number;total:string}>(sql`select count(*)::int as count, coalesce(sum(amount_minor),0)::text as total from clinic_app.credit_notes
+      where clinic_id=${scope.clinicId} and branch_id=${scope.branchId} and (created_at at time zone ${clinic.timezone})::date between ${from}::date and ${to}::date`);
     const present = (value:typeof total) => cashFlow(value.receipts.toString(),value.refunds.toString(),value.expenses.toString());
-    return {from,to,currency:'PKR',generatedAt:new Date().toISOString(),totals:present(total),
+    return {from,to,currency:'PKR',generatedAt:new Date().toISOString(),totals:present(total),creditNotes:{count:credits.count,totalMinor:credits.total},
       days:[...days].map(([businessDate,value])=>({businessDate,...present(value)})),
-      methods:[...methods].map(([method,value])=>({method,...present(value)}))};
+      // Disabled methods stay in the report only when the range has movement on them.
+      methods:[...methods].filter(([name,value])=>clinicMethods.find(m=>m.name===name)?.active||value.receipts||value.refunds||value.expenses).map(([method,value])=>({method,...present(value)}))};
   }, {isolationLevel:'repeatable read'});
 }

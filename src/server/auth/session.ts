@@ -17,7 +17,8 @@ export async function authClient() {
   });
 }
 
-export async function requireIdentity() {
+export async function requireIdentity() { return (await requireIdentityClaims()).subject; }
+export async function requireIdentityClaims() {
   const client = await authClient();
   // Cookie contents alone do not establish identity: getClaims verifies the access token's signature and expiry
   // against the project's published asymmetric signing keys (cached), avoiding an Auth-server round trip per request.
@@ -26,5 +27,5 @@ export async function requireIdentity() {
   const { data, error } = await client.auth.getClaims();
   const subject = data?.claims?.sub;
   if (error || !subject || data.claims.is_anonymous) throw new AppError(401, 'UNAUTHENTICATED', 'Sign in to continue.');
-  return subject;
+  return { subject, email: typeof data.claims.email === 'string' ? data.claims.email : null };
 }

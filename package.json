@@ -12,7 +12,7 @@
     "start": "next start",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "next typegen && tsc --noEmit",
-    "check": "pnpm lint && pnpm typecheck && pnpm test:billing && pnpm test:operations && pnpm test:expenses && pnpm test:messaging && pnpm test:finance && pnpm test:visits && pnpm test:env && pnpm test:reports && pnpm test:plans && pnpm test:follow-ups && pnpm test:timeline && pnpm test:patient-clinical && pnpm test:patient-profile && pnpm test:patient-duplicates && pnpm test:scheduling && pnpm test:procedures && pnpm test:appointments && pnpm test:contact-preferences && pnpm build",
+    "check": "pnpm lint && pnpm typecheck && pnpm test:billing && pnpm test:operations && pnpm test:expenses && pnpm test:messaging && pnpm test:finance && pnpm test:visits && pnpm test:env && pnpm test:reports && pnpm test:plans && pnpm test:follow-ups && pnpm test:timeline && pnpm test:patient-clinical && pnpm test:patient-profile && pnpm test:patient-duplicates && pnpm test:scheduling && pnpm test:procedures && pnpm test:appointments && pnpm test:contact-preferences && pnpm test:time && pnpm test:operator && pnpm build",
     "test:billing": "node --experimental-strip-types --test tests/demo-billing.test.ts",
     "test:operations": "node --experimental-strip-types --test tests/demo-operations.test.ts",
     "db:generate": "drizzle-kit generate",
@@ -54,7 +54,15 @@
     "db:verify-plans": "node --experimental-strip-types scripts/verify-plans.ts",
     "test:reports": "node --experimental-strip-types --test tests/reports.test.ts",
     "test:visits": "node --experimental-strip-types --test tests/visits.test.ts",
-    "db:verify-visits": "node --experimental-strip-types scripts/verify-visits.ts"
+    "db:verify-visits": "node --experimental-strip-types scripts/verify-visits.ts",
+    "db:verify-operator": "node --experimental-strip-types scripts/verify-operator.ts",
+    "operator:grant": "node --experimental-strip-types scripts/grant-operator.ts",
+    "db:verify-clinic-settings": "node --experimental-strip-types scripts/verify-clinic-settings.ts",
+    "db:verify-credit-notes": "node --experimental-strip-types scripts/verify-credit-notes.ts",
+    "db:verify-staff-admin": "node --experimental-strip-types scripts/verify-staff-admin.ts",
+    "db:verify-tenant-isolation": "node --experimental-strip-types scripts/verify-tenant-isolation.ts",
+    "test:time": "node --experimental-strip-types --test tests/time.test.ts",
+    "test:operator": "node --experimental-strip-types --test tests/operator.test.ts"
   },
   "dependencies": {
     "@radix-ui/react-slot": "1.3.3",
@@ -64,26 +72,31 @@
     "clsx": "2.1.1",
     "drizzle-orm": "0.45.3",
     "lucide-react": "1.48.0",
-    "next": "16.3.6",
+    "next": "16.4.6",
     "postgres": "3.4.9",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "server-only": "0.0.1",
     "tailwind-merge": "3.7.0",
     "tw-animate-css": "1.4.0",
-    "zod": "4.6.5"
+    "zod": "4.6.7"
   },
   "devDependencies": {
-    "@next/env": "16.3.6",
+    "@next/env": "16.4.6",
     "@tailwindcss/postcss": "4.3.3",
     "@types/node": "24.19.0",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "drizzle-kit": "0.31.11",
     "eslint": "9.39.5",
-    "eslint-config-next": "16.3.6",
+    "eslint-config-next": "16.4.6",
     "tailwindcss": "4.3.3",
     "typescript": "5.9.3"
   },
-  "type": "module"
+  "type": "module",
+  "pnpm": {
+    "overrides": {
+      "source-map-js": "1.2.2"
+    }
+  }
 }

@@ -40,7 +40,12 @@ Use the same hostname as `NEXT_PUBLIC_APP_URL`; write endpoints enforce its Orig
 - Daily closing drafts, separate staff approval, discrepancy explanation, immutable cash snapshots and closed-day posting guards.
 - WhatsApp template queue, recorded consent, signed/deduplicated webhooks, delivery history, opt-out handling and a separate durable worker. Disabled until Meta is configured.
 
-Billing records money received/returned; it does not process card or bank transactions. Finance uses PKR and integer paisa. Closing requires a different approver from the latest draft author. New permissions are defined by migrations but never silently assigned to an existing account.
+- Operator console (`/operator`) to create clinics, invite owners, record plan and paid-until, and suspend or reactivate. Operators have no patient access. See the [operator runbook](docs/runbooks/operator-console.md).
+- Owner self-service: clinic settings and receipt text, per-clinic payment methods (Cash, Card, Bank transfer, Easypaisa, JazzCash), closing approval policy, starter procedure list, and staff invites, roles and deactivation ([permissions](docs/architecture/permissions.md)).
+- Credit notes and linked charge corrections. Balance = charges − credit notes − net payments.
+- Password reset, invite links, 30-minute idle sign-out, security headers and `/api/health`.
+
+Billing records money received/returned; it does not process card or bank transactions. Finance uses PKR and integer paisa. Closing requires a different approver from the latest draft author unless the clinic allows an owner to self-approve with a note. New permissions are defined by migrations but never silently assigned to an existing account.
 
 [WhatsApp setup](docs/runbooks/whatsapp.md) explains server-only configuration, templates and worker operation. Do not paste secrets into chats or commit them. Meta account setup, template approval, hosted HTTPS callbacks and live delivery remain external steps.
 
@@ -58,6 +63,11 @@ pnpm db:verify-timeline
 pnpm db:verify-patient-clinical
 pnpm db:verify-patient-profile
 pnpm db:verify-patient-duplicates
+pnpm db:verify-operator
+pnpm db:verify-clinic-settings
+pnpm db:verify-credit-notes
+pnpm db:verify-staff-admin
+pnpm db:verify-tenant-isolation
 ```
 
 Database checks use local synthetic fixtures and roll them back. Messaging tests use fake providers and never send real messages. CI runs static/build/unit checks and PostgreSQL integration suites. Browser acceptance and live integrations are separate gates.

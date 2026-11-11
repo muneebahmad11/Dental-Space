@@ -1,2 +1,2 @@
 import { redirect } from 'next/navigation';
-export default function StaffPage(){redirect('/patients');}
+export default function StaffPage(){redirect('/team');}

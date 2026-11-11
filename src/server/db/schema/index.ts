@@ -15,3 +15,4 @@ export * from './scheduling.ts';
 export * from './procedures.ts';
 export * from './recent-patients.ts';
 export * from './contact-preferences.ts';
+export * from './platform.ts';

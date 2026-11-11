@@ -9,6 +9,7 @@ import { auditEvents } from '../db/schema/security.ts';
 import { requireOpenFinancialDay } from '../closing/guard.ts';
 import { businessDate } from '../../lib/finance/contracts.ts';
 import { AppError } from '../http/errors.ts';
+import { cashMethod,requireActiveMethod } from '../clinic/settings.ts';
 import type { PatientScope } from '../patients/service.ts';
 const scopeSchema = z.object({authUserId:z.uuid(),clinicId:z.uuid(),branchId:z.uuid()});
 function parse<T>(schema:z.ZodType<T>,value:unknown):T {const result=schema.safeParse(value);if(!result.success)throw new AppError(400,'INVALID_INPUT','Check the expense date, amount and details.');return result.data;}
@@ -25,6 +26,7 @@ export async function recordExpense(db:Database,scope:PatientScope,raw:unknown){
   const [clinic]=await tx.select({currency:clinics.currency,timezone:clinics.timezone}).from(clinics).where(eq(clinics.id,scope.clinicId));
   if(clinic?.currency!=='PKR')throw new AppError(409,'CURRENCY_UNSUPPORTED','Expense recording currently supports PKR clinics.');
   if(details.paidOn>businessDate(clinic.timezone))throw new AppError(400,'DATE_FUTURE','A paid expense cannot be dated in the future.');
+  await requireActiveMethod(tx,scope.clinicId,details.method);
   await requireOpenFinancialDay(tx,scope,details.paidOn);
   const [row]=await tx.insert(expenses).values({...details,operationId,amountMinor:amount,currency:clinic.currency,clinicId:scope.clinicId,branchId:scope.branchId,actorMembershipId:c.membershipId,payloadHash:hash}).returning();
   await tx.insert(auditEvents).values({clinicId:scope.clinicId,branchId:scope.branchId,actorMembershipId:c.membershipId,entityId:row.id,entityType:'expense',action:'expense.recorded',requestId:randomUUID()});return row;
@@ -37,7 +39,7 @@ export async function listExpenses(db:Database,scope:PatientScope,raw:unknown){
  return db.transaction(async tx=>{
   await context(tx,scope);
   const rows=await tx.select().from(expenses).where(where).orderBy(desc(expenses.createdAt),desc(expenses.id)).limit(50).offset(query.offset);
-  const [totals]=await tx.select({count:sql<number>`count(*)::integer`,totalMinor:sql<string>`coalesce(sum(${expenses.amountMinor}),0)::text`,cashMinor:sql<string>`coalesce(sum(case when ${expenses.method}='Cash' then ${expenses.amountMinor} else 0 end),0)::text`}).from(expenses).where(where);
+  const [totals]=await tx.select({count:sql<number>`count(*)::integer`,totalMinor:sql<string>`coalesce(sum(${expenses.amountMinor}),0)::text`,cashMinor:sql<string>`coalesce(sum(case when ${cashMethod(scope.clinicId,expenses.method)} then ${expenses.amountMinor} else 0 end),0)::text`}).from(expenses).where(where);
   return {expenses:rows,...totals};
  }, {isolationLevel: 'repeatable read'});
 }

@@ -1,6 +1,6 @@
 import { sql } from 'drizzle-orm';
 import { check, date, foreignKey, index, integer, text, timestamp, unique, uuid } from 'drizzle-orm/pg-core';
-import { branches, clinicApp, memberships } from './organization.ts';
+import { branches, clinicApp, clinicPaymentMethods, memberships } from './organization.ts';
 export const expenses = clinicApp.table('expenses', {
   id: uuid('id').primaryKey().defaultRandom(), clinicId: uuid('clinic_id').notNull(), branchId: uuid('branch_id').notNull(),
   actorMembershipId: uuid('actor_membership_id').notNull(), paidOn: date('paid_on').notNull(),
@@ -16,6 +16,6 @@ export const expenses = clinicApp.table('expenses', {
   check('expenses_positive_amount',sql`${t.amountMinor} between 1 and 99999999`),
   check('expenses_description_valid',sql`length(trim(${t.description})) between 1 and 240`),
   check('expenses_category_valid',sql`${t.category} in ('Supplies','Laboratory','Utilities','Maintenance','Other')`),
-  check('expenses_method_valid',sql`${t.method} in ('Cash','Card','Bank transfer')`),
+  foreignKey({ name: 'expenses_method_fk', columns: [t.clinicId,t.method], foreignColumns: [clinicPaymentMethods.clinicId,clinicPaymentMethods.name] }),
   check('expenses_currency_valid',sql`${t.currency} = 'PKR'`),
 ]);

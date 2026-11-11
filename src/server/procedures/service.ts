@@ -1,7 +1,7 @@
 import { createHash,randomUUID } from 'node:crypto';
 import { and,asc,desc,eq,ilike,or,sql } from 'drizzle-orm';
 import { z } from 'zod';
-import { createProcedureInput,procedureQuery,updateProcedureInput,type ProcedureSnapshot } from '../../lib/procedures/contracts.ts';
+import { createProcedureInput,procedureQuery,starterProcedures,updateProcedureInput,type ProcedureSnapshot } from '../../lib/procedures/contracts.ts';
 import { authorize,resolveContext,type Database } from '../auth/context.ts';
 import { appUsers,memberships } from '../db/schema/organization.ts';
 import { procedures,procedureVersions } from '../db/schema/procedures.ts';
@@ -54,6 +54,21 @@ export async function createProcedure(db:Database,s:PatientScope,raw:unknown){
   const [row]=await tx.insert(procedures).values({clinicId:s.clinicId,code:input.code,name:input.name,category:input.category,defaultMinutes:input.defaultMinutes,priceMinor:input.price}).returning(fields);
   await record(tx,s,c.membershipId,row.id,1,{code:row.code,name:row.name,category:row.category,defaultMinutes:row.defaultMinutes,priceMinor:row.priceMinor,active:true},input.operationId,digest,'created');
   return {id:row.id,version:1};
+ });
+}
+// Adds the starter procedures a clinic does not already have (matched by name), without prices. Safe to repeat.
+export async function importStarterProcedures(db:Database,s:PatientScope){
+ return db.transaction(async tx=>{
+  const c=await context(tx,s,true);await lock(tx,s);
+  const existing=new Set((await tx.select({name:procedures.name}).from(procedures).where(eq(procedures.clinicId,s.clinicId))).map(p=>p.name.toLowerCase()));
+  let added=0;
+  for(const p of starterProcedures){
+   if(existing.has(p.name.toLowerCase()))continue;
+   const operationId=randomUUID();const snapshot={code:'',name:p.name,category:p.category,defaultMinutes:p.defaultMinutes,priceMinor:null,active:true};
+   const [row]=await tx.insert(procedures).values({clinicId:s.clinicId,code:'',name:p.name,category:p.category,defaultMinutes:p.defaultMinutes,priceMinor:null}).returning(fields);
+   await record(tx,s,c.membershipId,row.id,1,snapshot,operationId,hash({action:'starter',...snapshot}),'created');added++;
+  }
+  return {added,skipped:starterProcedures.length-added};
  });
 }
 export async function updateProcedure(db:Database,s:PatientScope,id:string,raw:unknown){

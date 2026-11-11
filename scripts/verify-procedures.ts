@@ -7,7 +7,7 @@ import { sql } from 'drizzle-orm';
 import { migrationEnvironment,requireLocalDatabase,connectionOptions } from '../src/lib/config/environment.ts';
 import { clinics,branches,appUsers,memberships,membershipBranches } from '../src/server/db/schema/organization.ts';
 import { membershipGrants } from '../src/server/db/schema/security.ts';
-import { activeProcedure,createProcedure,listProcedures,procedureHistory,updateProcedure } from '../src/server/procedures/service.ts';
+import { activeProcedure,createProcedure,importStarterProcedures,listProcedures,procedureHistory,updateProcedure } from '../src/server/procedures/service.ts';
 import { AppError } from '../src/server/http/errors.ts';
 const {MIGRATION_DATABASE_URL:url}=migrationEnvironment(process.env);requireLocalDatabase(url);const client=postgres(url,{...connectionOptions(url),max:1});const rollback=new Error('ROLLBACK_FIXTURES');const status=(n:number)=>(e:unknown)=>e instanceof AppError&&e.status===n;
 try{try{await drizzle(client).transaction(async tx=>{
@@ -40,6 +40,9 @@ try{try{await drizzle(client).transaction(async tx=>{
  await updateProcedure(tx,scope,scaling.id,{operationId:randomUUID(),expectedVersion:1,code:'',name:'Scaling',category:'Preventive',defaultMinutes:30,price:null,active:false});
  assert.equal((await listProcedures(tx,scope,{})).items.length,1);assert.equal((await listProcedures(tx,scope,{includeInactive:'true'})).items.length,2);
  await assert.rejects(activeProcedure(tx,clinic.id,scaling.id),status(404));await assert.rejects(activeProcedure(tx,otherClinic.id,created.id),status(404));assert.equal((await activeProcedure(tx,clinic.id,created.id)).defaultMinutes,90);
+ // The starter list adds only missing names, without prices, needs configure access and is safe to repeat.
+ await assert.rejects(importStarterProcedures(tx,staffScope),status(403));const starter=await importStarterProcedures(tx,otherScope);assert.deepEqual(starter,{added:20,skipped:0});assert.deepEqual(await importStarterProcedures(tx,otherScope),{added:0,skipped:20});
+ const imported=(await listProcedures(tx,otherScope,{})).items;assert.equal(imported.length,21);assert.equal(imported.filter(p=>p.priceMinor===null).length,20);assert.equal((await listProcedures(tx,scope,{})).items.length,1);
  // Audit failure rolls back the change; version history cannot be altered.
  await tx.execute(sql`reset role`);await tx.execute(sql`revoke insert on clinic_app.audit_events from clinic_runtime`);await tx.execute(sql`set local role clinic_runtime`);
  await assert.rejects(createProcedure(tx,scope,{operationId:randomUUID(),code:'',name:'Extraction',category:'Oral surgery',defaultMinutes:30,price:'3000'}));
