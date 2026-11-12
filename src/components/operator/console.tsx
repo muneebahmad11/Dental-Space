@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { deliveryText, type InviteDelivery } from '@/lib/operator/contracts';
 import { api } from '@/components/live/session';
 import { useIdleSignOut } from '@/components/live/idle';
+import { ThemeToggle } from '@/components/theme';
 
 type Clinic = { id: string; name: string; city: string; phone: string; timezone: string; status: 'active' | 'suspended'; planNote: string; paidUntil: string | null; createdAt: string; branchName: string | null; staffCount: number; ownerEmail: string | null; ownerName: string | null; inviteStatus: 'pending' | 'accepted' | null; inviteDelivery: InviteDelivery | null };
 type Event = { id: string; action: string; occurredAt: string; operatorName: string };
@@ -66,7 +67,7 @@ export function OperatorConsole() {
   if (state === 'denied') return <main className="staff-workspace live-login"><section><h1>Operator access required</h1><p>This account is not a platform operator.</p><p><Link href="/">Go to the clinic workspace</Link></p><button disabled={busy} onClick={logout}>Sign out</button></section></main>;
   const overdue = (c: Clinic) => c.status === 'active' && !!c.paidUntil && c.paidUntil < today();
   return <main className="staff-workspace operator-console">
-    <header><div><p className="eyebrow">Operator console</p><h1>Clinics</h1></div><div><span className="muted">{name}</span> <button className="secondary" disabled={busy} onClick={logout}>Sign out</button></div></header>
+    <header><div><h1>Clinics</h1></div><div><span className="muted">{name}</span> <ThemeToggle/> <button className="secondary" disabled={busy} onClick={logout}>Sign out</button></div></header>
     <p>Create clinics after they pay, invite the owner, and suspend or reactivate a subscription. This console never shows patient, clinical or finance records.</p>
     {error && <p role="alert" className="staff-error">{error}</p>}{notice && <p role="status">{notice}</p>}
     <section><h2>{clinics.length} clinic{clinics.length === 1 ? '' : 's'}</h2>

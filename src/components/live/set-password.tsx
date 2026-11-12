@@ -1,7 +1,7 @@
 'use client';
+import { BrandName } from '@/components/brand';
 import { useState, type FormEvent } from 'react';
 import Link from 'next/link';
-import { Stethoscope } from 'lucide-react';
 import { api } from './session';
 export function SetPassword({ expired }: { expired: boolean }) {
   const [busy, setBusy] = useState(false); const [error, setError] = useState(''); const [done, setDone] = useState(false);
@@ -14,7 +14,7 @@ export function SetPassword({ expired }: { expired: boolean }) {
     catch (e) { setError(e instanceof Error && 'status' in e && e.status === 401 ? 'This link has expired or was already used. Ask for a new one from the sign-in page.' : e instanceof Error ? e.message : 'Password could not be saved.'); }
     finally { setBusy(false); }
   }
-  return <main className="staff-workspace live-login"><div className="brand"><span className="brand-icon"><Stethoscope size={24} /></span><span>Dental<span className="brand-light">space</span></span></div><section>
+  return <main className="staff-workspace live-login"><div className="brand"><BrandName /></div><section>
     <h1>Choose your password</h1>
     {expired ? <><p role="alert" className="staff-error">This link has expired or was already used.</p><p>Open the sign-in page and choose “Forgot password” to get a new link.</p><p><Link href="/">Go to sign-in</Link></p></>
       : done ? <><p role="status">Password saved. You are signed in.</p><p><Link href="/">Open your clinic</Link></p></>

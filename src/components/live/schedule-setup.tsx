@@ -23,7 +23,7 @@ export function ScheduleSetup(){
  useEffect(()=>{if(!allowed)return;const c=new AbortController();api('/api/v1/schedule/settings',{headers:scopeHeaders(scope),signal:c.signal}).then(d=>{if(!c.signal.aborted){setData(d);setError('');}}).catch(e=>{if(!c.signal.aborted)setError(e.message);});return()=>c.abort();},[scope,allowed,revision]);
  if(!allowed)return <section className="staff-workspace live-inner"><h1>Schedule setup</h1><p>Your account needs appointment read or schedule configuration access.</p></section>;
  const reload=()=>setRevision(n=>n+1);
- return <div className="staff-workspace live-inner"><div className="page-heading"><div><p className="eyebrow">{scope.branchName}</p><h1>Schedule setup</h1></div></div>
+ return <div className="staff-workspace live-inner"><div className="page-heading"><div><h1>Schedule setup</h1><p className="page-sub">{scope.branchName}</p></div></div>
   <p>Dentist calendars, chairs, opening hours and closed dates for this branch. Times use the clinic timezone{data?` (${data.timezone})`:''}. Every change is versioned and audited; nothing is deleted.</p>
   {error&&<p role="alert" className="staff-error">{error}</p>}
   {!data?<section role="status"><p>Loading schedule setup…</p></section>:<>

@@ -15,7 +15,7 @@ export function ClinicSettingsPage() {
   const toggle = (m: PaymentMethod) => run(async () => { await api('/api/v1/clinic/payment-methods', { method: 'PATCH', headers: scopeHeaders(scope), body: JSON.stringify({ name: m.name, active: !m.active }) }); }, `${m.name} ${m.active ? 'disabled' : 'enabled'}.`);
   if (!data) return <div className="staff-workspace live-inner"><h1>Clinic settings</h1>{error ? <p role="alert" className="staff-error">{error}</p> : <p role="status">Loading settings…</p>}</div>;
   const { settings: s, canConfigure } = data; const off = busy || !canConfigure;
-  return <div className="staff-workspace live-inner"><div className="page-heading"><div><p className="eyebrow">Clinic setup</p><h1>Clinic settings</h1></div></div>
+  return <div className="staff-workspace live-inner"><div className="page-heading"><div><h1>Clinic settings</h1></div></div>
     <p>These details appear on receipts. {canConfigure ? 'Changes are recorded in the audit log.' : 'Only staff with clinic setup access can change them.'}</p>
     {error && <p role="alert" className="staff-error">{error}</p>}{notice && <p role="status">{notice}</p>}
     <section><h2>Clinic details and receipt text</h2><form onSubmit={save} key={s.version}>

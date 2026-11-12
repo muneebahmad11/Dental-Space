@@ -51,7 +51,7 @@ export function Calendar({start='',patientId=''}:{start?:''|'book'|'walk_in';pat
     <button className="secondary" onClick={()=>refresh()}>Refresh</button>
     {canWrite&&<><button onClick={()=>{setSelected('');setDraft({kind:'book',date,time:'',dentistId:dentistFilter});}}>New booking</button><button className="secondary" onClick={()=>{setSelected('');setDraft({kind:'walk_in'});}}>Walk-in</button></>}</div>
   </div>
-  <p className="cal-caption">{view==='day'?`${weekdayLabels[localParts('UTC',new Date(`${date}T12:00:00Z`)).weekday]} ${date}`:`Week of ${from}`} · Clinic time ({timezone}){!settings.hours&&' · Opening hours not configured'}{activeDentists.length===0&&<> · <Link href="/schedule-setup">Add dentist calendars</Link></>}</p>
+  <p className="cal-caption">{view==='day'?longDate(date):`Week of ${longDate(from)}`}<span className="muted"> in clinic time ({timezone.split('/').pop()?.replace('_',' ')})</span></p>{(!settings.hours||activeDentists.length===0)&&<p className="cal-closed">{!settings.hours&&'Opening hours aren’t set yet, so every slot shows as open. '}{activeDentists.length===0&&<>No dentist calendars yet. <Link href="/schedule-setup">Add dentists in schedule setup</Link>.</>}</p>}
   {closure&&view==='day'&&<p role="status" className="cal-closed">Branch closed: {closure.reason}</p>}
   {error&&<p role="alert" className="staff-error">{error}</p>}{notice&&<p role="status">{notice}</p>}
   <div className={`cal-layout ${current||draft?'with-panel':''}`}>
@@ -64,6 +64,8 @@ export function Calendar({start='',patientId=''}:{start?:''|'book'|'walk_in';pat
   </div>
  </div>;
 }
+// Calendar dates are clinic-local YYYY-MM-DD strings; shown as "Friday 13 November".
+const longDate=(d:string)=>new Intl.DateTimeFormat('en-GB',{weekday:'long',day:'numeric',month:'long',timeZone:'UTC'}).format(new Date(`${d}T12:00:00Z`));
 // Overlapping bookings (allowed only by override or walk-in) are laid out side by side.
 function lanes(items:Appointment[]){const sorted=[...items].sort((a,b)=>+new Date(a.startsAt)-+new Date(b.startsAt));const ends:number[]=[];const lane=new Map<string,number>();for(const r of sorted){let i=ends.findIndex(e=>e<=+new Date(r.startsAt));if(i<0){i=ends.length;ends.push(0);}ends[i]=+new Date(r.endsAt);lane.set(r.id,i);}return {lane,count:Math.max(1,ends.length)};}
 function DayGrid({date,settings,rows,dentists,selected,onSelect,onSlot}:{date:string;settings:Settings;rows:Appointment[];dentists:Dentist[];selected:string;onSelect:(id:string)=>void;onSlot?:(time:string,dentistId:string)=>void}){

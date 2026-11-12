@@ -26,7 +26,7 @@ export function TeamAdmin() {
   if (!data) return <div className="staff-workspace live-inner"><h1>Staff and access</h1>{error ? <p role="alert" className="staff-error">{error}</p> : <p role="status">Loading staff…</p>}</div>;
   const fromRoles = (names: string[]) => new Set(data.roles.filter(r => names.includes(r.name)).flatMap(r => r.permissions));
   const branchName = (id: string) => data.branches.find(b => b.id === id)?.name ?? 'Branch';
-  return <div className="staff-workspace live-inner"><div className="page-heading"><div><p className="eyebrow">Clinic setup</p><h1>Staff and access</h1></div></div>
+  return <div className="staff-workspace live-inner"><div className="page-heading"><div><h1>Staff and access</h1></div></div>
     <p>Invite your team, choose what each person can do, and deactivate people who leave. Every change is recorded in the audit log.</p>
     {error && <p role="alert" className="staff-error">{error}</p>}{notice && <p role="status">{notice}</p>}
     <section><h2>Staff</h2><div className="table-scroll"><table className="data-table"><thead><tr><th>Name</th><th>Roles</th><th>Branches</th><th>Status</th><th></th></tr></thead><tbody>{data.members.map(m => editing === m.id ? <tr key={m.id}><td colSpan={5}><MemberForm m={m} data={data} busy={busy} inherited={fromRoles} onSubmit={e => save(e, m)} onCancel={() => setEditing('')} /></td></tr> : <tr key={m.id} className={m.active ? '' : 'inactive'}>
