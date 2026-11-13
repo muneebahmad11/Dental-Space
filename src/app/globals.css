@@ -466,3 +466,55 @@ span.loading { display: inline-flex; gap: 6px; }
   .spinner, .loading::before { animation-duration: 2s; }
 }
 @media print { .nav-progress, .spinner, .loading::before { display: none; } }
+
+/* ---------- Motion ----------
+   Short and tied to what the person does: a page settles in, menus and panels open from where they were
+   triggered, presses give feedback. Everything here is skipped when the device asks for reduced motion. */
+:root { --ease-out: cubic-bezier(.2, .7, .2, 1); --ease-spring: cubic-bezier(.3, 1.3, .5, 1); }
+@keyframes enter { from { opacity: 0; transform: translateY(6px); } }
+@keyframes fade-in { from { opacity: 0; } }
+@keyframes pop-in { from { opacity: 0; transform: translateY(-4px) scale(.98); } }
+@keyframes slide-in-right { from { opacity: 0; transform: translateX(12px); } }
+@keyframes tab-in { from { transform: scaleY(.3); opacity: 0; } }
+@keyframes icon-in { from { transform: rotate(-90deg) scale(.6); opacity: 0; } }
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Page arrival: the heading and panels settle in, a few milliseconds apart. */
+  .staff-workspace > *, .page-content > :not(.staff-workspace), .operator-console > * { animation: enter .26s var(--ease-out) both; }
+  .staff-workspace > :nth-child(2) { animation-delay: .03s; }
+  .staff-workspace > :nth-child(3) { animation-delay: .06s; }
+  .staff-workspace > :nth-child(4) { animation-delay: .09s; }
+  .staff-workspace > :nth-child(n+5) { animation-delay: .12s; }
+
+  /* Presses */
+  :where(button, .action-link, .quick-add summary) { transition: background-color .12s, border-color .12s, color .12s, transform .12s var(--ease-out), box-shadow .12s; }
+  :where(button, .action-link, .quick-add summary):active:not(:disabled) { transform: scale(.97); }
+
+  /* Rows react to the pointer */
+  .staff-workspace li, .staff-workspace tbody tr { transition: background-color .12s; }
+
+  /* Menus and search results open from their trigger */
+  .header-search-results, .quick-add[open] .quick-add-menu { transform-origin: top; animation: pop-in .16s var(--ease-out); }
+  .quick-add-menu a { transition: background-color .1s, padding-left .15s var(--ease-out); }
+
+  /* Disclosure content, side panels, messages */
+  .staff-workspace details[open] > :not(summary) { animation: enter .2s var(--ease-out); }
+  .cal-panel { animation: slide-in-right .22s var(--ease-out); }
+  [role="alert"], p[role="status"]:not(.loading) { animation: enter .2s var(--ease-out); }
+  .loading, .page-loading { animation: fade-in .2s .15s both; } /* quick loads never flash a spinner */
+
+  /* Sidebar: the active tab grows in on the new page */
+  .nav-link.active::after { transform-origin: center; animation: tab-in .22s var(--ease-spring); }
+  .nav-link svg { transition: transform .15s var(--ease-out); }
+  .nav-link:hover svg { transform: translateX(1px); }
+
+  /* Theme toggle icon turns in when it changes */
+  .theme-toggle svg { animation: icon-in .25s var(--ease-spring); }
+
+  /* Calendar appointments lift slightly under the pointer */
+  .cal-column a, .cal-week-day a { transition: transform .12s var(--ease-out), box-shadow .12s, background-color .12s; }
+  .cal-column a:hover, .cal-week-day a:hover { transform: translateY(-1px); box-shadow: var(--shadow-float); }
+
+  /* Theme switch: colours ease over (class set briefly by switchTheme) */
+  .theme-switching, .theme-switching *, .theme-switching *::before, .theme-switching *::after { transition: background-color .28s ease, color .28s ease, border-color .28s ease, fill .28s ease !important; }
+}

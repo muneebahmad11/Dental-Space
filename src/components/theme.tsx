@@ -14,6 +14,19 @@ function readTheme(): Theme {
   try { const t = localStorage.getItem(storageKey); return t === 'light' || t === 'dark' ? t : 'system'; } catch { return 'system'; }
 }
 
+// Colours ease into the new theme: `theme-switching` turns on a short colour transition for every element
+// (see globals.css) and is removed once it has played. The next theme is read at click time, so quick
+// repeated clicks always step from the theme actually showing.
+let switching: ReturnType<typeof setTimeout> | undefined;
+function switchTheme() {
+  const theme = order[(order.indexOf(readTheme()) + 1) % order.length];
+  const root = document.documentElement;
+  root.classList.add('theme-switching');
+  clearTimeout(switching);
+  switching = setTimeout(() => root.classList.remove('theme-switching'), 320);
+  applyTheme(theme);
+}
+
 function applyTheme(theme: Theme) {
   const root = document.documentElement;
   if (theme === 'system') delete root.dataset.theme; else root.dataset.theme = theme;
@@ -29,5 +42,5 @@ export function ThemeToggle() {
   const next = order[(order.indexOf(current) + 1) % order.length];
   const Icon = current === 'dark' ? Moon : current === 'light' ? Sun : Monitor;
   return <button type="button" className="theme-toggle secondary" title={`${labels[current]} — switch to ${labels[next].toLowerCase()}`} aria-label={`${labels[current]}. Switch to ${labels[next].toLowerCase()}`}
-    onClick={() => applyTheme(next)}><Icon size={16} aria-hidden /><span>{current === 'system' ? 'Auto' : current === 'light' ? 'Light' : 'Dark'}</span></button>;
+    onClick={switchTheme}><Icon key={current} size={16} aria-hidden /><span>{current === 'system' ? 'Auto' : current === 'light' ? 'Light' : 'Dark'}</span></button>;
 }
