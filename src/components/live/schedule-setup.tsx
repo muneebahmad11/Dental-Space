@@ -26,7 +26,7 @@ export function ScheduleSetup(){
  return <div className="staff-workspace live-inner"><div className="page-heading"><div><h1>Schedule setup</h1><p className="page-sub">{scope.branchName}</p></div></div>
   <p>Dentist calendars, chairs, opening hours and closed dates for this branch. Times use the clinic timezone{data?` (${data.timezone})`:''}. Every change is versioned and audited; nothing is deleted.</p>
   {error&&<p role="alert" className="staff-error">{error}</p>}
-  {!data?<section role="status"><p>Loading schedule setup…</p></section>:<>
+  {!data?<section role="status"><p className="loading">Loading schedule setup…</p></section>:<>
    {!data.canConfigure&&<p role="status">View only. Changing the setup requires schedule configuration access.</p>}
    <OpeningHours settings={data} saved={reload}/>
    <Resources kind="dentist" settings={data} saved={reload}/>

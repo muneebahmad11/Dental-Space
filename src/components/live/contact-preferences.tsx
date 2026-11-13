@@ -14,7 +14,7 @@ export function ContactPreferences({patientId}:{patientId:string}){
  const {scope}=useClinic();const [data,setData]=useState<Data|null>(null);const [error,setError]=useState('');const [revision,setRevision]=useState(0);const [editing,setEditing]=useState(false);const [notice,setNotice]=useState('');
  useEffect(()=>{const c=new AbortController();api(`/api/v1/patients/${patientId}/contact-preferences`,{headers:scopeHeaders(scope),signal:c.signal}).then(d=>{if(!c.signal.aborted){setData(d);setError('');}}).catch(e=>{if(!c.signal.aborted)setError(e.message);});return()=>c.abort();},[scope,patientId,revision]);
  return <section><h2>Contact preferences</h2><p>How this patient agreed to be contacted, by channel and purpose. WhatsApp sending also checks these. Staff calls are still logged as normal.</p>{error&&<p role="alert" className="staff-error">{error}</p>}{notice&&<p role="status">{notice}</p>}
-  {!data?!error&&<p role="status">Loading contact preferences…</p>:<>
+  {!data?!error&&<p role="status" className="loading">Loading contact preferences…</p>:<>
    <p><strong>{data.current?summary(data.current.body):'Not recorded yet'}</strong>{data.current?.body.note&&<> · {data.current.body.note}</>}</p>
    {!data.current&&<p className="muted">Not recorded does not mean the patient agreed. Ask and record their preferences.</p>}
    {data.canWrite&&!editing&&<button className="secondary" onClick={()=>{setEditing(true);setNotice('');}}>{data.current?'Change preferences':'Record preferences'}</button>}

@@ -24,7 +24,7 @@ export function PatientSearch(){
   <input id="global-patient-search" type="search" value={query} placeholder="Search patients…" maxLength={100} autoComplete="off" onFocus={()=>setOpen(true)} onChange={e=>{setQuery(e.target.value);setResults(null);setOpen(true);}}/>
   {open&&<div className="header-search-results" role="listbox" aria-label={term?'Matching patients':'Recently opened patients'}>
    <p className="header-search-title">{term.length>=2?'Matching patients':term?'Type at least 2 characters':'Recently opened'}</p>{error&&<p role="alert" className="staff-error">{error}</p>}
-   {list===null?<p className="muted">Loading…</p>:list.length===0?<p className="muted">{term.length>=2?'No matching patients.':term?'':'No recent patients yet.'}</p>:list.slice(0,8).map(p=><div key={p.id} className="header-search-item" role="option" aria-selected={false}>
+   {list===null?<p className="muted loading" role="status">Loading…</p>:list.length===0?<p className="muted">{term.length>=2?'No matching patients.':term?'':'No recent patients yet.'}</p>:list.slice(0,8).map(p=><div key={p.id} className="header-search-item" role="option" aria-selected={false}>
     <Link href={`/patients/${p.id}/profile`}><strong>{p.name}</strong><span>{p.phone}{p.status&&p.status!=='active'?` · ${p.status}`:''}</span></Link>
     <span className="header-search-actions"><Link href={`/patients/${p.id}/timeline`}>Timeline</Link>{canBook&&<Link href={`/appointments?book=1&patientId=${p.id}`}>Book</Link>}</span></div>)}
   </div>}

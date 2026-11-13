@@ -37,6 +37,6 @@ export function FinancialReports() {
       <section><h2>Credit notes</h2><p>{report.creditNotes.count?`${report.creditNotes.count} credit note${report.creditNotes.count===1?'':'s'} reduced charges by ${moneyMinor(report.creditNotes.totalMinor)} in this period.`:'No credit notes in this period.'} Credit notes reduce what patients owe and move no money, so they are not in the cash totals.</p></section>
       <section><h2>By payment method</h2><table><thead><tr><th>Method</th><th>Payments</th><th>Refunds</th><th>Expenses</th><th>Net movement</th></tr></thead><tbody>{report.methods.map(row=><tr key={row.method}><th scope="row">{row.method}</th><td>{moneyMinor(row.receiptsMinor)}</td><td>{moneyMinor(row.refundsMinor)}</td><td>{moneyMinor(row.expensesMinor)}</td><td>{moneyMinor(row.netMovementMinor)}</td></tr>)}</tbody></table></section>
       <section><h2>Daily totals</h2>{report.days.length?<table><thead><tr><th>Date</th><th>Payments</th><th>Refunds</th><th>Expenses</th><th>Net movement</th></tr></thead><tbody>{report.days.map(row=><tr key={row.businessDate}><th scope="row">{row.businessDate}</th><td>{moneyMinor(row.receiptsMinor)}</td><td>{moneyMinor(row.refundsMinor)}</td><td>{moneyMinor(row.expensesMinor)}</td><td>{moneyMinor(row.netMovementMinor)}</td></tr>)}</tbody></table>:<p>No transactions in this range.</p>}</section></>}
-    {!report&&!error&&<p role="status">Loading report…</p>}
+    {!report&&!error&&<p role="status" className="loading">Loading report…</p>}
   </div>;
 }

@@ -97,5 +97,5 @@ function ClinicRow({ c, open, busy, overdue, toggle, suspend, reactivate, billin
 function History({ clinicId, stamp }: { clinicId: string; stamp: string }) {
   const [events, setEvents] = useState<Event[] | null>(null); const [error, setError] = useState('');
   useEffect(() => { let live = true; api(`/api/v1/operator/clinics/${clinicId}`).then(d => { if (live) { setEvents(d.events); setError(''); } }).catch(e => { if (live) setError(e.message); }); return () => { live = false; }; }, [clinicId, stamp]);
-  return <div><h3>Operator history</h3>{error && <p role="alert" className="staff-error">{error}</p>}{!events ? <p role="status">Loading history…</p> : <ul>{events.map(e => <li key={e.id}><span>{actions[e.action] ?? e.action}</span><span className="muted">{e.operatorName} · {when(e.occurredAt)}</span></li>)}</ul>}</div>;
+  return <div><h3>Operator history</h3>{error && <p role="alert" className="staff-error">{error}</p>}{!events ? <p role="status" className="loading">Loading history…</p> : <ul>{events.map(e => <li key={e.id}><span>{actions[e.action] ?? e.action}</span><span className="muted">{e.operatorName} · {when(e.occurredAt)}</span></li>)}</ul>}</div>;
 }

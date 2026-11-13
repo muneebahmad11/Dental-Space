@@ -23,7 +23,7 @@ export function TeamAdmin() {
   const setActive = (m: Member, active: boolean) => { if (!active && !window.confirm(`Deactivate ${m.name}? They will be blocked from this clinic at once. Their past records stay.`)) return; void run(async () => { await api(`/api/v1/team/${m.id}`, { method: 'PATCH', headers: scopeHeaders(scope), body: JSON.stringify({ operationId: crypto.randomUUID(), roleNames: m.roleNames, grants: m.grants, branchIds: m.branchIds, active }) }); return active ? `${m.name} can sign in again.` : `${m.name} is deactivated.`; }); };
   const revoke = (id: string) => run(async () => { await api(`/api/v1/team/invites/${id}`, { method: 'DELETE', headers: scopeHeaders(scope) }); return 'Invite cancelled.'; });
   if (!allowed) return <section className="staff-workspace live-inner"><h1>Staff and access</h1><p>Only staff who manage users can open this page.</p></section>;
-  if (!data) return <div className="staff-workspace live-inner"><h1>Staff and access</h1>{error ? <p role="alert" className="staff-error">{error}</p> : <p role="status">Loading staff…</p>}</div>;
+  if (!data) return <div className="staff-workspace live-inner"><h1>Staff and access</h1>{error ? <p role="alert" className="staff-error">{error}</p> : <p role="status" className="loading">Loading staff…</p>}</div>;
   const fromRoles = (names: string[]) => new Set(data.roles.filter(r => names.includes(r.name)).flatMap(r => r.permissions));
   const branchName = (id: string) => data.branches.find(b => b.id === id)?.name ?? 'Branch';
   return <div className="staff-workspace live-inner"><div className="page-heading"><div><h1>Staff and access</h1></div></div>

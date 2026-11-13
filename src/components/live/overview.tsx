@@ -13,7 +13,7 @@ export function Overview(){const {scope,can}=useClinic();const [data,setData]=us
  return <div className="staff-workspace live-inner"><div className="page-heading"><div><h1>Today at {scope.branchName}</h1><p className="today-line">{today}</p></div><button className="text-button" onClick={()=>{setData(null);setError('');setRevision(v=>v+1);}}>Refresh</button></div>
  {error&&<p role="alert" className="form-error">{error}</p>}
  {!can('patient.demographics.read')?<section className="panel empty-state"><h2>Patient access required</h2><p>Ask the clinic owner to give your account patient access to see today’s numbers.</p></section>
- :!data&&!error?<p role="status" className="muted">Loading today’s numbers…</p>
+ :!data&&!error?<p role="status" className="muted loading">Loading today’s numbers…</p>
  :data&&<div className="stats-grid" aria-label="Today in numbers">
   <div className="stat-card is-now"><strong>{sum(data.appointments,['arrived','waiting','in_treatment'])}</strong><span className="stat-label">In the clinic now</span><p>Arrived, waiting or in the chair</p></div>
   <div className="stat-card"><strong>{sum(data.appointments,['booked','confirmed'])}</strong><span className="stat-label">Still expected today</span><p>Booked or confirmed, not yet arrived</p></div>

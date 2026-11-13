@@ -438,3 +438,31 @@ main.staff-workspace { max-width: 1100px; margin: 0 auto; padding: 48px 24px; }
   .staff-workspace li > div:first-child { flex-basis: 100%; }
   .staff-workspace li { gap: 8px 14px; }
 }
+
+/* ---------- Loading: navigation bar, spinners ---------- */
+.nav-progress { position: fixed; inset: 0 0 auto 0; height: 3px; z-index: 1000; pointer-events: none; opacity: 0; }
+.nav-progress span { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 0 2px 2px 0; }
+.nav-progress[data-state="running"] { opacity: 1; transition: opacity .15s .12s; }
+.nav-progress[data-state="running"] span { animation: nav-progress 8s cubic-bezier(.1,.7,.2,1) .12s forwards; }
+.nav-progress[data-state="done"] { opacity: 0; transition: opacity .3s .15s; }
+.nav-progress[data-state="done"] span { width: 100%; transition: width .15s ease-out; }
+@keyframes nav-progress { from { width: 0; } 30% { width: 45%; } to { width: 90%; } }
+
+.spinner, .loading::before { display: inline-block; flex: none; width: 1em; height: 1em; border-radius: 50%; border: 2px solid var(--rule-strong); border-top-color: var(--accent); animation: spin .7s linear infinite; box-sizing: border-box; }
+.loading { display: flex; align-items: center; gap: 10px; color: var(--ink-2); }
+.loading::before { content: ""; }
+span.loading { display: inline-flex; gap: 6px; }
+.loading-block { display: flex; align-items: center; gap: 16px; }
+.loading-block .spinner { width: 28px; height: 28px; border-width: 3px; }
+.loading-block h1 { margin: 0; }
+.loading-block p { margin: 4px 0 0; }
+.page-loading { min-height: 40vh; justify-content: center; color: var(--ink-2); }
+.page-loading .spinner { width: 22px; height: 22px; }
+.page-loading p { margin: 0; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-progress[data-state="running"] span { animation: none; width: 100%; opacity: .6; }
+  .spinner, .loading::before { animation-duration: 2s; }
+}
+@media print { .nav-progress, .spinner, .loading::before { display: none; } }
