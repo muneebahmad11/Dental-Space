@@ -361,13 +361,6 @@ main.staff-workspace { max-width: 1100px; margin: 0 auto; padding: 48px 24px; }
 .quick-add-menu a:hover { background: var(--hover); }
 
 /* ---------- Sign-in and standalone pages ---------- */
-.live-login { max-width: 440px !important; padding-top: 12vh !important; }
-.live-login .brand { padding: 0; margin-bottom: 28px; font-size: 22px; }
-.live-login .brand-icon svg { width: 28px; height: 28px; }
-.live-login section { padding: 28px; }
-.live-login h1 { font-size: 26px; }
-.live-login form { margin-top: 20px; }
-.live-login form button { margin-top: 4px; }
 .operator-console { max-width: 1200px; margin: 0 auto; padding: 36px 24px 56px; }
 .theme-toggle { display: inline-flex; align-items: center; gap: 6px; }
 
@@ -517,4 +510,51 @@ span.loading { display: inline-flex; gap: 6px; }
 
   /* Theme switch: colours ease over (class set briefly by switchTheme) */
   .theme-switching, .theme-switching *, .theme-switching *::before, .theme-switching *::after { transition: background-color .28s ease, color .28s ease, border-color .28s ease, fill .28s ease !important; }
+}
+
+/* ---------- Sign-in ---------- */
+.signin { min-height: 100vh; display: grid; grid-template-columns: minmax(380px, 540px) 1fr; background: var(--paper); }
+.signin-panel { display: flex; flex-direction: column; min-height: 100vh; padding: 32px clamp(24px, 5vw, 64px); border-right: 1px solid var(--rule); }
+.signin .brand { padding: 0; font-size: 20px; }
+.signin .brand-icon svg { width: 26px; height: 26px; }
+.signin-body { width: 100%; max-width: 380px; margin: auto 0; padding: 48px 0; }
+.signin-body h1 { font-size: 32px; margin-bottom: 8px; }
+.signin-body h1 + p { margin: 0 0 26px; }
+.signin-body form { display: grid; }
+.signin-body .staff-error, .signin-notice { margin: 0 0 18px !important; }
+.signin-label-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px; }
+.staff-workspace .signin-label-row label { margin: 0; }
+.signin-label-row .text-button { font-size: 13.5px; }
+.password-field { position: relative; margin-bottom: 22px; }
+.staff-workspace .password-field input { padding-right: 46px; }
+.staff-workspace .password-field button.reveal { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); margin: 0; width: 36px; height: 36px; padding: 0; display: grid; place-items: center; background: none; border: 0; color: var(--ink-3); border-radius: var(--radius-md); }
+.staff-workspace .password-field button.reveal:hover { background: var(--hover); color: var(--ink); }
+.staff-workspace .password-field button.reveal:active { transform: translateY(-50%) scale(.94); }
+.staff-workspace button.signin-submit { width: 100%; min-height: 46px; margin: 0; justify-content: center; gap: 10px; font-size: 15.5px; }
+.signin-submit .spinner { border-color: color-mix(in srgb, var(--accent-ink) 35%, transparent); border-top-color: var(--accent-ink); }
+.signin-notice { background: var(--ok-soft); color: var(--ok) !important; padding: 10px 14px; border-radius: var(--radius-md); font-size: 14px; }
+.signin-help { margin-top: 24px !important; padding-top: 18px; border-top: 1px solid var(--rule); font-size: 14px; color: var(--ink-2); }
+.signin-foot { display: flex; }
+
+.signin-art { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 48px; background: var(--accent-soft); text-align: center; overflow: hidden; }
+.tooth-chart { width: min(440px, 100%); height: auto; margin-bottom: 28px; }
+.tooth rect { fill: var(--paper); stroke: var(--rule-strong); stroke-width: 1.2; }
+.tooth text { font-size: 8.5px; font-weight: 700; fill: var(--ink-3); font-family: var(--font-sans); }
+.tooth.done rect { fill: var(--accent); stroke: var(--accent); }
+.tooth.done text, .tooth.planned text { fill: var(--accent); }
+.tooth.planned rect { stroke: var(--accent); stroke-width: 1.8; stroke-dasharray: 3 2.2; }
+.tooth-chart .midline { stroke: var(--rule-strong); stroke-dasharray: 2 5; }
+.signin-art-line { margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -.015em; color: var(--ink); max-width: 26ch; text-wrap: balance; }
+.signin-art-sub { margin: 0; font-size: 15px; color: var(--ink-2); max-width: 44ch; text-wrap: balance; }
+
+@keyframes tooth-in { from { opacity: 0; transform: scale(.6); } }
+@media (prefers-reduced-motion: no-preference) {
+  .tooth { transform-box: fill-box; transform-origin: center; animation: tooth-in .38s var(--ease-spring) both; }
+  .signin-art-line, .signin-art-sub { animation: enter .4s .5s var(--ease-out) both; }
+}
+@media (max-width: 860px) {
+  .signin { grid-template-columns: 1fr; }
+  .signin-panel { border-right: 0; padding: 24px 16px; }
+  .signin-art { display: none; }
+  .signin-body { padding: 32px 0; margin: auto; }
 }
