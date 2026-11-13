@@ -19,6 +19,8 @@ import * as expenses from '../src/server/expenses/service.ts';
 import * as finance from '../src/server/finance/service.ts';
 import * as followUps from '../src/server/follow-ups/service.ts';
 import * as messaging from '../src/server/messaging/service.ts';
+import * as clickToChat from '../src/server/messaging/click-to-chat.ts';
+import * as dues from '../src/server/finance/dues.ts';
 import { clinicOverview } from '../src/server/overview/query.ts';
 import * as clinical from '../src/server/patient-clinical/service.ts';
 import * as contact from '../src/server/patient-profile/contact.ts';
@@ -124,6 +126,8 @@ const byId: Record<string, Call> = {
   saveVisitDraft: (db, s, x) => visits.saveVisitDraft(db, s, x.visitId, { expectedVersion: x.visitVersion, body: { ...note, complaint: 'Changed by attack' } }),
   signVisit: (db, s, x) => visits.signVisit(db, s, x.visitId, { expectedVersion: x.visitVersion, operationId: op() }),
   updateStaff: (db, s, x) => staff.updateStaff(db, s, x.membershipId, { operationId: op(), roleNames: ['dentist', 'owner'], grants: ['audit.read'], branchIds: [s.branchId], active: true }),
+  whatsappLink: (db, s, x) => clickToChat.whatsappLink(db, s, { patientId: x.patientId, template: 'recall' }),
+  whatsappAppointment: (db, s, x) => clickToChat.whatsappLink(db, s, { patientId: x.patientId, template: 'appointment_reminder', appointmentId: x.appointmentId }),
   revokeInvite: (db, s, x) => staff.revokeInvite(db, s, x.inviteId),
 };
 // These depend on the time of day or on messaging being configured, so only the refusal with B's IDs is checked.
@@ -145,10 +149,10 @@ const lists: Record<string, (db: Database, s: PatientScope, b: Ids) => Promise<u
   clinicOverview: (db, s) => [clinicOverview(db, s, { startsAt: zonedInstant(timezone, day, '00:00').toISOString(), endsAt: zonedInstant(timezone, addDays(day, 1), '00:00').toISOString() })],
   financeReport: (db, s) => [financeReport(db, s, { from: addDays(today, -5), to: today })], closingSummary: (db, s) => [closing.closingSummary(db, s, today), closing.closingSummary(db, s, addDays(today, -1))],
   listProcedures: (db, s) => [procedures.listProcedures(db, s, {}), procedures.listProcedures(db, s, { search: 'TENANT_B' })], getScheduleSettings: (db, s) => [scheduling.getScheduleSettings(db, s)],
-  listAuditEvents: (db, s) => [listAuditEvents(db, s)], readClinicSettings: (db, s) => [settings.readClinicSettings(db, s)], listPaymentMethods: (db, s) => [settings.listPaymentMethods(db, s)], listStaff: (db, s) => [staff.listStaff(db, s)],
+  listAuditEvents: (db, s) => [listAuditEvents(db, s)], readClinicSettings: (db, s) => [settings.readClinicSettings(db, s)], listPaymentMethods: (db, s) => [settings.listPaymentMethods(db, s)], listStaff: (db, s) => [staff.listStaff(db, s)], unpaidBalances: (db, s) => [dues.unpaidBalances(db, s, {}), dues.unpaidBalances(db, s, { sort: 'oldest' })],
 };
 // These act only inside the caller's own clinic and take no record ID; the swapped-scope check below covers them.
-const scopeOnly = ['saveClosingDraft', 'approveClosing', 'recordExpense', 'createPatient', 'importStarterProcedures', 'createProcedure', 'addClosure', 'createScheduleResource', 'saveOpeningHours', 'saveClinicSettings', 'setPaymentMethod', 'inviteStaff'];
+const scopeOnly = ['saveClosingDraft', 'approveClosing', 'recordExpense', 'createPatient', 'importStarterProcedures', 'createProcedure', 'addClosure', 'createScheduleResource', 'saveOpeningHours', 'saveClinicSettings', 'setPaymentMethod', 'inviteStaff', 'saveMessageTemplates', 'saveClinicLogo'];
 // A refusal is 403 or 404. Three services answer a foreign ID exactly like a stale version (409, no data), and
 // messaging is switched off, so sending answers 503 after the access check has passed for the caller's own clinic.
 const alsoRefused: Record<string, string> = { updatePatient: 'PATIENT_CONFLICT', saveVisitDraft: 'VISIT_CONFLICT', cancelMessage: 'MESSAGE_CONFLICT', queueMessage: 'WHATSAPP_NOT_CONFIGURED' };
@@ -186,6 +190,7 @@ try { try { await drizzle(client).transaction(async tx => {
     'bookAppointment with B dentist': (db, s, x) => byId.bookAppointment(db, s, { ...idsA, dentistId: x.dentistId }), 'bookAppointment with B chair': (db, s, x) => byId.bookAppointment(db, s, { ...idsA, chairId: x.chairId }), 'bookAppointment with B procedure': (db, s, x) => byId.bookAppointment(db, s, { ...idsA, procedureId: x.procedureId }),
     'rescheduleAppointment to B dentist': (db, s, x) => byId.rescheduleAppointment(db, s, { ...idsA, dentistId: x.dentistId }), 'updateAppointmentDetails with B procedure': (db, s, x) => byId.updateAppointmentDetails(db, s, { ...idsA, procedureId: x.procedureId }),
     'readPatientAlert with B alert': (db, s, x) => byId.readPatientAlert(db, s, { ...idsA, alertId: x.alertId }), 'updatePatientAlert with B alert': (db, s, x) => byId.updatePatientAlert(db, s, { ...idsA, alertId: x.alertId }),
+    'whatsappLink with B appointment': (db, s, x) => clickToChat.whatsappLink(db, s, { patientId: idsA.patientId, template: 'appointment_reminder', appointmentId: x.appointmentId }),
     'createVisit with B appointment': (db, s, x) => visits.createVisit(db, s, { patientId: idsA.patientId, appointmentId: x.appointmentId, operationId: op() }),
     'createFollowUp assigned to B staff': (db, s, x) => followUps.createFollowUp(db, s, { operationId: op(), patientId: idsA.patientId, visitId: null, type: 'Scaling recall', customType: '', dueOn: addDays(today, 9), assigneeId: x.membershipId, note: 'Attack' }),
     'createFollowUp for B visit': (db, s, x) => followUps.createFollowUp(db, s, { operationId: op(), patientId: idsA.patientId, visitId: x.visitId, type: 'Scaling recall', customType: '', dueOn: addDays(today, 9), assigneeId: null, note: 'Attack' }),

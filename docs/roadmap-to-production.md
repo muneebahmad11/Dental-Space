@@ -134,7 +134,7 @@ Today: paid expenses, closing draft, separate approval, locked day.
 ### 1G Follow-ups, communication log and timeline (M09)
 
 - [ ] **U1 Manual communication log** (M). Any channel (phone, SMS, WhatsApp manual, in person, email), purpose, outcome, note, linked to patient and optionally appointment/follow-up/plan. Follow-up contact entries reuse it.
-- [ ] **U2 Message templates for manual use** (M) 🔒 wording. Clinic-managed texts for confirmation, reminder, missed appointment, follow-up, estimate, receipt, recall, filled with patient data and copied/opened in WhatsApp click-to-chat. Usage is logged.
+- [x] **U2 Message templates for manual use** (M) 🔒 wording. Clinic-managed texts for confirmation, reminder, missed appointment, follow-up, estimate, receipt, recall, filled with patient data and copied/opened in WhatsApp click-to-chat. Usage is logged.
 - [ ] **U3 Follow-up defaults from visits/procedures** (S). Suggested follow-up type and due date from procedure (e.g. suture removal 7 days), still created by staff.
 - [ ] **U4 Timeline coverage** (S). Add appointment events, communication log, discounts/credit notes/credits. *Done when:* AT10 passes.
 

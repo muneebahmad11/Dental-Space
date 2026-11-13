@@ -93,9 +93,9 @@ What is still built for one clinic:
 
 **Week 1–2 after launch (to sell to more clinics):**
 1. Money race tests (F8) and an automated E2E smoke test (Q1)
-2. Discounts (F2), estimate discount, validity and print (T3, T4)
+2. Discounts (F2), estimate discount, validity and print (T3, T4) *Done 2026-11-14: charge discounts (`charge.discount`), estimate discount, valid-until and printable estimate.*
 3. **Clinic data export** (full CSV/ZIP of a clinic's data, owner only), promised in the terms for clinics that leave
-4. Clinic logo on receipts (needs the file service O1)
+4. Clinic logo on receipts (needs the file service O1) *Done 2026-11-14 without O1: logos stored in the database, frozen per receipt.*
 5. Separate staging project and release/rollback runbook (D2, D10)
 6. Usage per clinic in the operator console (staff seats, patients, last activity)
 

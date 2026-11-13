@@ -5,10 +5,13 @@ import { channelLabels,contactChannels,contactPurposes,preferenceSources,purpose
 import { api,scopeHeaders,useClinic } from './session';
 type Data={current:{body:ContactPreferenceBody;version:number;updatedAt:string}|null;history:{version:number;body:ContactPreferenceBody;reason:string;createdAt:string;actorName:string}[];canWrite:boolean};
 const blank:ContactPreferenceBody={doNotContact:false,preferredChannel:'none',channels:{phone:true,sms:false,whatsapp:false,email:false},purposes:{appointment:true,recall:true,billing:true,marketing:false},note:'',source:'in_person'};
+const purposeShort:Record<string,string>={appointment:'appointments',recall:'recalls',billing:'billing',marketing:'offers'};
+// "a", "a and b", "a, b and c"
+const listText=(items:string[])=>items.length<2?items.join(''):`${items.slice(0,-1).join(', ')} and ${items[items.length-1]}`;
 function summary(b:ContactPreferenceBody){
  if(b.doNotContact)return 'Do not contact';
- const channels=contactChannels.filter(c=>b.channels[c]).map(c=>channelLabels[c]);const purposes=contactPurposes.filter(p=>b.purposes[p]).map(p=>purposeLabels[p].split(' ')[0].toLowerCase());
- return `${channels.length?channels.join(', '):'No channels'} · for ${purposes.length?purposes.join(', '):'nothing'}${b.preferredChannel!=='none'?` · prefers ${channelLabels[b.preferredChannel]}`:''}`;
+ const channels=contactChannels.filter(c=>b.channels[c]).map(c=>channelLabels[c]);const purposes=contactPurposes.filter(p=>b.purposes[p]).map(p=>purposeShort[p]);
+ return `${channels.length?listText(channels):'No channels'} for ${purposes.length?listText(purposes):'nothing'}${b.preferredChannel!=='none'?` · prefers ${channelLabels[b.preferredChannel]}`:''}`;
 }
 export function ContactPreferences({patientId}:{patientId:string}){
  const {scope}=useClinic();const [data,setData]=useState<Data|null>(null);const [error,setError]=useState('');const [revision,setRevision]=useState(0);const [editing,setEditing]=useState(false);const [notice,setNotice]=useState('');

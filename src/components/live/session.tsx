@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { PatientSearch,QuickAdd } from './header-tools';
 import { idleMinutes,useIdleSignOut } from './idle';
 import { ThemeToggle } from '@/components/theme';
-import { CalendarDays,LayoutDashboard,Users,Wallet,Receipt,LockKeyhole,MessageCircle,BarChart3,Settings2,ClipboardList,NotebookPen,ListChecks,BellRing,Clock,UserCog,LogOut } from 'lucide-react';
+import { CalendarDays,LayoutDashboard,Users,Wallet,HandCoins,Receipt,LockKeyhole,MessageCircle,BarChart3,Settings2,ClipboardList,NotebookPen,ListChecks,BellRing,Clock,UserCog,LogOut } from 'lucide-react';
 import { BrandName } from '@/components/brand';
 import { SignIn } from './sign-in';
 export type ClinicScope={clinicId:string;clinicName:string;branchId:string;branchName:string;currency:string;timezone:string;permissions:string[]};
@@ -18,7 +18,7 @@ export function scopeHeaders(scope:ClinicScope){return {'x-clinic-id':scope.clin
 const navGroups=[
  {name:'Front desk',items:[{href:'/',name:'Overview',icon:LayoutDashboard},{href:'/appointments',name:'Appointments',icon:CalendarDays},{href:'/patients',name:'Patients',icon:Users},{href:'/follow-ups',name:'Follow-ups & recalls',icon:BellRing},{href:'/communications',name:'Communications',icon:MessageCircle}]},
  {name:'In the chair',items:[{href:'/clinical',name:'Clinical visits',icon:NotebookPen},{href:'/plans',name:'Treatment plans',icon:ListChecks}]},
- {name:'Money',items:[{href:'/billing',name:'Billing',icon:Wallet},{href:'/expenses',name:'Expenses',icon:Receipt},{href:'/closing',name:'Daily closing',icon:LockKeyhole},{href:'/reports',name:'Reports',icon:BarChart3}]},
+ {name:'Money',items:[{href:'/billing',name:'Billing',icon:Wallet},{href:'/dues',name:'Unpaid balances',icon:HandCoins},{href:'/expenses',name:'Expenses',icon:Receipt},{href:'/closing',name:'Daily closing',icon:LockKeyhole},{href:'/reports',name:'Reports',icon:BarChart3}]},
  {name:'Clinic setup',items:[{href:'/procedures',name:'Procedures',icon:ClipboardList},{href:'/schedule-setup',name:'Schedule setup',icon:Clock},{href:'/team',name:'Staff and access',icon:UserCog},{href:'/settings',name:'Clinic settings',icon:Settings2}]},
 ];
 const isActive=(path:string,href:string)=>href==='/'?path==='/':path===href||path.startsWith(`${href}/`);

@@ -6,3 +6,9 @@ export function ToothMark() {
 export function BrandName() {
   return <><span className="brand-icon"><ToothMark /></span><span>Dentalspace</span></>;
 }
+
+// A clinic's uploaded logo. It is a small data URL already resized on upload, so next/image has nothing to optimise.
+export function LogoImage({ src, className, alt = '' }: { src: string; className?: string; alt?: string }) {
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={src} alt={alt} className={className} />;
+}

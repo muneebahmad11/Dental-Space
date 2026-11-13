@@ -51,8 +51,11 @@ export async function financeReport(db: Database, scope: PatientScope, raw: unkn
     }
     const [credits] = await tx.execute<{count:number;total:string}>(sql`select count(*)::int as count, coalesce(sum(amount_minor),0)::text as total from clinic_app.credit_notes
       where clinic_id=${scope.clinicId} and branch_id=${scope.branchId} and (created_at at time zone ${clinic.timezone})::date between ${from}::date and ${to}::date`);
+    // Discounts given on charges posted in the period. Like credit notes they reduce what is owed and move no money.
+    const [discounts] = await tx.execute<{count:number;total:string}>(sql`select count(*)::int as count, coalesce(sum(discount_minor),0)::text as total from clinic_app.charges
+      where clinic_id=${scope.clinicId} and branch_id=${scope.branchId} and discount_minor>0 and (created_at at time zone ${clinic.timezone})::date between ${from}::date and ${to}::date`);
     const present = (value:typeof total) => cashFlow(value.receipts.toString(),value.refunds.toString(),value.expenses.toString());
-    return {from,to,currency:'PKR',generatedAt:new Date().toISOString(),totals:present(total),creditNotes:{count:credits.count,totalMinor:credits.total},
+    return {from,to,currency:'PKR',generatedAt:new Date().toISOString(),totals:present(total),creditNotes:{count:credits.count,totalMinor:credits.total},discounts:{count:discounts.count,totalMinor:discounts.total},
       days:[...days].map(([businessDate,value])=>({businessDate,...present(value)})),
       // Disabled methods stay in the report only when the range has movement on them.
       methods:[...methods].filter(([name,value])=>clinicMethods.find(m=>m.name===name)?.active||value.receipts||value.refunds||value.expenses).map(([method,value])=>({method,...present(value)}))};

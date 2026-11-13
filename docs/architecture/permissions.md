@@ -18,6 +18,7 @@ Decisions built into these defaults:
 
 - **An owner who treats patients gets both Owner and Dentist.** The operator ticks "Owner also treats patients" when creating the clinic. Owner alone cannot sign a clinical note.
 - **Reducing money needs the owner.** Credit notes and charge corrections (`charge.credit`) are owner-only. Refunds (`refund.post`) are owner and accountant. The receptionist can take money but not give it back or reduce a bill.
+- **Discounts are decided by owners and dentists.** `charge.discount` lets someone take a discount (with a reason) off a charge as they post it. A discount agreed on an accepted estimate is applied automatically when reception bills that work, so reception needs no discount permission for it.
 - **The receptionist does not see clinical notes.** Follow-up and recall lists need `patient.clinical.read`, so a clinic whose receptionist makes recall calls must add "follow-up" and "clinical read" for that person. This is deliberate: the owner makes that choice, the product does not.
 - **Closing needs two people by default.** A solo clinic switches the policy in Clinic settings so the owner can approve their own count with a written note.
 
@@ -37,7 +38,7 @@ Decisions built into these defaults:
 | Appointments and schedule | `appointment.read`, `appointment.write`, `appointment.override`, `appointment.duration.override`, `schedule.configure` |
 | Clinical visits and plans | `visit.draft.write`, `visit.finalize`, `plan.read`, `plan.write`, `plan.accept`, `plan.complete` |
 | Follow-ups and messages | `followup.read`, `followup.write`, `communication.read`, `communication.send`, `communication.preferences.write` |
-| Billing and money | `billing.read`, `charge.post`, `charge.credit`, `payment.post`, `refund.post`, `expense.read`, `expense.write`, `closing.read`, `closing.write`, `closing.approve` |
+| Billing and money | `billing.read`, `charge.post`, `charge.credit`, `charge.discount`, `payment.post`, `refund.post`, `expense.read`, `expense.write`, `closing.read`, `closing.write`, `closing.approve` |
 | Clinic setup and staff | `clinic.configure`, `procedure.configure`, `user.manage`, `audit.read` |
 
 Adding a permission: add it to `permissionCatalog`, insert it in a migration (and into existing `owner` roles if owners should have it), and it appears on the staff screen automatically. `tests/operator.test.ts` fails if a permission is in no group or unreachable through Owner plus Dentist.

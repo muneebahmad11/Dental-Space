@@ -12,7 +12,7 @@
     "start": "next start",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "next typegen && tsc --noEmit",
-    "check": "pnpm lint && pnpm typecheck && pnpm test:billing && pnpm test:operations && pnpm test:expenses && pnpm test:messaging && pnpm test:finance && pnpm test:visits && pnpm test:env && pnpm test:reports && pnpm test:plans && pnpm test:follow-ups && pnpm test:timeline && pnpm test:patient-clinical && pnpm test:patient-profile && pnpm test:patient-duplicates && pnpm test:scheduling && pnpm test:procedures && pnpm test:appointments && pnpm test:contact-preferences && pnpm test:time && pnpm test:operator && pnpm build",
+    "check": "pnpm lint && pnpm typecheck && pnpm test:billing && pnpm test:operations && pnpm test:expenses && pnpm test:messaging && pnpm test:finance && pnpm test:visits && pnpm test:env && pnpm test:reports && pnpm test:plans && pnpm test:follow-ups && pnpm test:timeline && pnpm test:patient-clinical && pnpm test:patient-profile && pnpm test:patient-duplicates && pnpm test:scheduling && pnpm test:procedures && pnpm test:appointments && pnpm test:contact-preferences && pnpm test:time && pnpm test:operator && pnpm test:templates && pnpm build",
     "test:billing": "node --experimental-strip-types --test tests/demo-billing.test.ts",
     "test:operations": "node --experimental-strip-types --test tests/demo-operations.test.ts",
     "db:generate": "drizzle-kit generate",
@@ -61,8 +61,10 @@
     "db:verify-credit-notes": "node --experimental-strip-types scripts/verify-credit-notes.ts",
     "db:verify-staff-admin": "node --experimental-strip-types scripts/verify-staff-admin.ts",
     "db:verify-tenant-isolation": "node --experimental-strip-types scripts/verify-tenant-isolation.ts",
+    "db:verify-quick-wins": "node --experimental-strip-types scripts/verify-quick-wins.ts",
     "test:time": "node --experimental-strip-types --test tests/time.test.ts",
-    "test:operator": "node --experimental-strip-types --test tests/operator.test.ts"
+    "test:operator": "node --experimental-strip-types --test tests/operator.test.ts",
+    "test:templates": "node --experimental-strip-types --test tests/message-templates.test.ts tests/receipt-pdf.test.ts"
   },
   "dependencies": {
     "@radix-ui/react-slot": "1.3.3",

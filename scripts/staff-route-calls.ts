@@ -10,6 +10,8 @@ import * as expenses from '../src/server/expenses/service.ts';
 import * as finance from '../src/server/finance/service.ts';
 import * as followUps from '../src/server/follow-ups/service.ts';
 import * as messaging from '../src/server/messaging/service.ts';
+import * as clickToChat from '../src/server/messaging/click-to-chat.ts';
+import * as dues from '../src/server/finance/dues.ts';
 import { clinicOverview } from '../src/server/overview/query.ts';
 import * as clinical from '../src/server/patient-clinical/service.ts';
 import * as contact from '../src/server/patient-profile/contact.ts';
@@ -41,6 +43,7 @@ export function staffRouteCalls(patientId: string): Record<string, StaffCall> {
     bookFollowUp: (db, s) => followUps.bookFollowUp(db, s, id, body), createFollowUp: (db, s) => followUps.createFollowUp(db, s, body), listFollowUps: (db, s) => followUps.listFollowUps(db, s, body), followUpStaff: (db, s) => followUps.followUpStaff(db, s), readFollowUp: (db, s) => followUps.readFollowUp(db, s, id), mutateFollowUp: (db, s) => followUps.mutateFollowUp(db, s, id, body),
     cancelMessage: (db, s) => messaging.cancelMessage(db, s, id), listCommunications: (db, s) => messaging.listCommunications(db, s, body, null), queueMessage: (db, s) => messaging.queueMessage(db, s, body, null), setMessagingPreference: (db, s) => messaging.setMessagingPreference(db, s, body),
     clinicOverview: (db, s) => clinicOverview(db, s, body),
+    whatsappLink: (db, s) => clickToChat.whatsappLink(db, s, body), saveMessageTemplates: (db, s) => clickToChat.saveMessageTemplates(db, s, body), unpaidBalances: (db, s) => dues.unpaidBalances(db, s, body), saveClinicLogo: (db, s) => settings.saveClinicLogo(db, s, body),
     listPatientAlerts: (db, s) => clinical.listPatientAlerts(db, s, patientId), createPatientAlert: (db, s) => clinical.createPatientAlert(db, s, patientId, body), readHistoryVersion: (db, s) => clinical.readHistoryVersion(db, s, patientId, 1), readPatientAlert: (db, s) => clinical.readPatientAlert(db, s, patientId, id), updatePatientAlert: (db, s) => clinical.updatePatientAlert(db, s, patientId, id, body), readPatientClinical: (db, s) => clinical.readPatientClinical(db, s, patientId), savePatientHistory: (db, s) => clinical.savePatientHistory(db, s, patientId, body),
     readContactPreferences: (db, s) => contact.readContactPreferences(db, s, patientId), saveContactPreferences: (db, s) => contact.saveContactPreferences(db, s, patientId, body),
     readPatientProfile: (db, s) => profile.readPatientProfile(db, s, patientId), savePatientProfile: (db, s) => profile.savePatientProfile(db, s, patientId, body),

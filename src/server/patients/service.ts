@@ -16,9 +16,19 @@ export const patientInput = z.object({
   email: z.union([z.email().max(254), z.literal('')]).optional(),
 }).strict();
 const patientFields = { id: patients.id, displayId: patients.displayId, name: patients.name, phone: patients.phone, email: patients.email, version: patients.version, createdAt: patients.createdAt };
+const fieldMessages: Record<string, string> = {
+  name: 'Enter the patient’s full name (2 to 160 characters).',
+  phone: 'Enter a phone number with at least 7 digits, for example 0300 1234567.',
+  email: 'Enter a valid email address, or leave email empty.',
+};
 function parse<T>(schema: z.ZodType<T>, input: unknown): T {
   const result = schema.safeParse(input);
-  if (!result.success) throw new AppError(400, 'INVALID_INPUT', 'Check the supplied patient details.');
+  if (!result.success) {
+    // Name the field that is wrong, so reception knows what to fix.
+    const field = String(result.error.issues[0]?.path[0] ?? '');
+    const message = fieldMessages[field] ?? 'Check the patient details.';
+    throw new AppError(400, 'INVALID_INPUT', message);
+  }
   return result.data;
 }
 async function context(db: Database, raw: PatientScope, write = false) {

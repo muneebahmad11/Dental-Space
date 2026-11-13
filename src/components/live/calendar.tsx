@@ -1,5 +1,5 @@
 'use client';
-import { clinicDateTime } from '@/lib/time';
+import { clinicDate, clinicDateTime } from '@/lib/time';
 import { BalanceBadge } from './balance-badge';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -8,6 +8,7 @@ import { bookingSources,reschedulableStatuses,sourceLabels,statusLabels,transiti
 import { businessDate } from '@/lib/finance/contracts';
 import { addDays,clockMinutes,clockOf,localParts,minutesToClock,weekStart,weekdayLabels,zonedInstant,type WeeklyHours } from '@/lib/scheduling/contracts';
 import { api,scopeHeaders,useClinic } from './session';
+import { WhatsAppButtons } from './whatsapp';
 type Appointment={id:string;patientId:string;patientName:string;patientDisplayId:string;startsAt:string;endsAt:string;status:AppointmentStatus;version:number;dentistId:string|null;dentistName:string|null;dentistColor:string|null;chairId:string|null;chairName:string|null;procedureId:string|null;procedureName:string|null;reason:string;notes:string;nextAction:string;source:typeof bookingSources[number];overrideReason:string|null};
 type Dentist={id:string;name:string;color:string;active:boolean};
 type Chair={id:string;name:string;active:boolean};
@@ -72,7 +73,10 @@ function DayGrid({date,settings,rows,dentists,selected,onSelect,onSlot}:{date:st
  const tz=settings.timezone;const weekday=localParts('UTC',new Date(`${date}T12:00:00Z`)).weekday;const periods=settings.hours?.weeklyHours[weekday]??[];const slot=settings.hours?.slotMinutes??15;
  const local=(v:string)=>{const p=localParts(tz,new Date(v));return p.date===date?p.minute:p.date<date?0:24*60;};
  let start=periods.length?Math.min(...periods.map(p=>clockMinutes(p[0]))):8*60;let end=periods.length?Math.max(...periods.map(p=>clockMinutes(p[1]))):20*60;
- for(const r of rows){start=Math.min(start,Math.floor(local(r.startsAt)/60)*60);end=Math.max(end,Math.ceil(local(r.endsAt)/60)*60);}
+ // Only live bookings stretch the day beyond opening hours; a cancelled or missed one never does.
+ const live=(r:Appointment)=>r.status!=='cancelled'&&r.status!=='no_show';
+ for(const r of rows.filter(live)){start=Math.min(start,Math.floor(local(r.startsAt)/60)*60);end=Math.max(end,Math.ceil(local(r.endsAt)/60)*60);}
+ const visible=(r:Appointment)=>live(r)||(local(r.endsAt)>start&&local(r.startsAt)<end);
  const open=(m:number)=>!settings.hours||periods.some(([a,b])=>m>=clockMinutes(a)&&m<clockMinutes(b));
  const closed=settings.closures.some(c=>c.closedOn===date);
  const columns:{id:string;name:string;color:string}[]=dentists.length?dentists.map(d=>({id:d.id,name:d.name,color:d.color})):[{id:'',name:'Branch calendar',color:'#185d55'}];
@@ -82,10 +86,11 @@ function DayGrid({date,settings,rows,dentists,selected,onSelect,onSlot}:{date:st
  return <div className="cal-scroll"><div className="cal-day" style={{gridTemplateColumns:`56px repeat(${columns.length},minmax(150px,1fr))`}}>
   <div className="cal-head"/>{columns.map(c=><div key={c.id} className="cal-head"><span className="color-dot" style={{background:c.color}}/>{c.name}</div>)}
   <div className="cal-gutter" style={{height}}>{slots.filter(m=>m%60===0).map(m=><span key={m} style={{top:(m-start)*pxPerMinute}}>{minutesToClock(m)}</span>)}</div>
-  {columns.map(c=>{const items=rows.filter(r=>columnOf(r)===c.id);const {lane,count}=lanes(items.filter(r=>r.status!=='cancelled'&&r.status!=='no_show'));return <div key={c.id} className="cal-column" style={{height}}>
+  {columns.map(c=>{const items=rows.filter(r=>columnOf(r)===c.id&&visible(r));const {lane,count}=lanes(items.filter(r=>r.status!=='cancelled'&&r.status!=='no_show'));return <div key={c.id} className="cal-column" style={{height}}>
    {slots.map(m=><button key={m} type="button" className={`cal-slot ${open(m)&&!closed?'':'cal-slot-closed'} ${m%60===0?'cal-hour':''}`} style={{top:(m-start)*pxPerMinute,height:slot*pxPerMinute}} disabled={!onSlot||c.id==='other'} aria-label={`Book ${minutesToClock(m)}${c.id&&c.id!=='other'?` with ${c.name}`:''}`} onClick={()=>onSlot?.(minutesToClock(m),c.id==='other'?'':c.id)}/>)}
    {items.map(r=>{const top=(local(r.startsAt)-start)*pxPerMinute;const h=Math.max(18,(local(r.endsAt)-local(r.startsAt))*pxPerMinute-2);const inactive=r.status==='cancelled'||r.status==='no_show';const l=inactive?0:lane.get(r.id)??0;const w=inactive?100:100/count;
-    return <button key={r.id} type="button" className={`cal-appt appt-${r.status} ${selected===r.id?'selected':''}`} style={{top,height:h,left:`calc(${l*w}% + 2px)`,width:`calc(${w}% - 4px)`,borderLeftColor:r.dentistColor??c.color}} onClick={()=>onSelect(r.id)}>
+    const size=h<26?'tiny':h<40?'compact':h<62?'short':'';
+    return <button key={r.id} type="button" title={`${r.patientName}, ${clockOf(tz,r.startsAt)}–${clockOf(tz,r.endsAt)}, ${statusLabels[r.status]}`} className={`cal-appt appt-${r.status} ${size} ${selected===r.id?'selected':''}`} style={{top,height:h,left:`calc(${l*w}% + 2px)`,width:`calc(${w}% - 4px)`,borderLeftColor:r.dentistColor??c.color}} onClick={()=>onSelect(r.id)}>
      <strong>{r.patientName}</strong><span>{clockOf(tz,r.startsAt)}–{clockOf(tz,r.endsAt)}{r.procedureName?` · ${r.procedureName}`:r.reason?` · ${r.reason}`:''}</span><span className="appt-chip">{r.source==='walk_in'?'Walk-in · ':''}{statusLabels[r.status]}{r.overrideReason?' · override':''}</span></button>;})}
   </div>;})}
  </div></div>;
@@ -128,7 +133,7 @@ const formValues=(form:HTMLFormElement)=>{const f=new FormData(form);const value
 function BookingForm({draft,patientId,settings,procedures,onClose,onSaved}:{draft:{date:string;time:string;dentistId:string};patientId?:string;settings:Settings;procedures:Procedure[];onClose:()=>void;onSaved:(id:string,message:string)=>void}){
  const {busy,error,send}=useCommand();const [patient,setPatient]=usePreselectedPatient(patientId);const [procedure,setProcedure]=useState<Procedure|null>(null);const [minutes,setMinutes]=useState(settings.hours?.slotMinutes&&settings.hours.slotMinutes>=15?settings.hours.slotMinutes:30);const formRef=useRef<HTMLFormElement>(null);
  function submit(override:string|null){const form=formRef.current;if(!form||!patient)return;const v=formValues(form);const startsAt=zonedInstant(settings.timezone,v.date,v.time);
-  void send<{appointment:{id:string}}>('/api/v1/appointments','POST',{patientId:patient.id,startsAt:startsAt.toISOString(),endsAt:new Date(+startsAt+minutes*60000).toISOString(),dentistId:v.dentistId,chairId:v.chairId,procedureId:v.procedureId,reason:v.reason,notes:v.notes,nextAction:v.nextAction,source:v.source,override:override?{reason:override}:null},d=>onSaved(d.appointment.id,`Booked ${patient.name} at ${v.time} on ${v.date}.`));}
+  void send<{appointment:{id:string}}>('/api/v1/appointments','POST',{patientId:patient.id,startsAt:startsAt.toISOString(),endsAt:new Date(+startsAt+minutes*60000).toISOString(),dentistId:v.dentistId,chairId:v.chairId,procedureId:v.procedureId,reason:v.reason,notes:v.notes,nextAction:v.nextAction,source:v.source,override:override?{reason:override}:null},d=>onSaved(d.appointment.id,`Booked ${patient.name} at ${v.time} on ${clinicDate(v.date)}.`));}
  return <Panel title="New booking" onClose={onClose}><PatientPicker value={patient} onChange={setPatient} disabled={busy}/>{patient&&<p><BalanceBadge patientId={patient.id}/></p>}
   <form ref={formRef} onSubmit={(e:FormEvent)=>{e.preventDefault();submit(null);}}>
    <div className="form-row"><label>Date<input name="date" type="date" defaultValue={draft.date} required disabled={busy}/></label><label>Start time<input name="time" type="time" step={300} defaultValue={draft.time} required disabled={busy}/></label></div>
@@ -161,8 +166,8 @@ function AppointmentPanel({row,settings,procedures,onClose,onChanged}:{row:Appoi
  }
  const local=localParts(tz,new Date(row.startsAt));
  return <Panel title={row.patientName} onClose={onClose}>
-  <p><strong>{statusLabels[row.status]}</strong>{row.source==='walk_in'&&' · Walk-in'} · {local.date} {clockOf(tz,row.startsAt)}–{clockOf(tz,row.endsAt)}</p>
-  <dl className="appt-facts"><dt>Patient</dt><dd><Link href={`/patients/${row.patientId}/profile`}>Profile</Link> · <Link href={`/patients/${row.patientId}/timeline`}>Timeline</Link></dd>{row.dentistName&&<><dt>Dentist</dt><dd>{row.dentistName}</dd></>}{row.chairName&&<><dt>Chair</dt><dd>{row.chairName}</dd></>}{row.procedureName&&<><dt>Procedure</dt><dd>{row.procedureName}</dd></>}{row.reason&&<><dt>Reason</dt><dd>{row.reason}</dd></>}<dt>Booked via</dt><dd>{sourceLabels[row.source]}</dd>{can('billing.read')&&<><dt>Account</dt><dd><BalanceBadge patientId={row.patientId}/></dd></>}{row.notes&&<><dt>Notes</dt><dd>{row.notes}</dd></>}{row.nextAction&&<><dt>Next action</dt><dd>{row.nextAction}</dd></>}{row.overrideReason&&<><dt>Override</dt><dd>{row.overrideReason}</dd></>}</dl>
+  <p><strong>{statusLabels[row.status]}</strong>{row.source==='walk_in'&&' · Walk-in'} · {clinicDate(local.date)} {clockOf(tz,row.startsAt)}–{clockOf(tz,row.endsAt)}</p>
+  <dl className="appt-facts"><dt>Patient</dt><dd><Link href={`/patients/${row.patientId}/profile`}>Profile</Link> · <Link href={`/patients/${row.patientId}/timeline`}>Timeline</Link></dd>{row.dentistName&&<><dt>Dentist</dt><dd>{row.dentistName}</dd></>}{row.chairName&&<><dt>Chair</dt><dd>{row.chairName}</dd></>}{row.procedureName&&<><dt>Procedure</dt><dd>{row.procedureName}</dd></>}{row.reason&&<><dt>Reason</dt><dd>{row.reason}</dd></>}<dt>Booked via</dt><dd>{sourceLabels[row.source]}</dd>{can('billing.read')&&<><dt>Account</dt><dd><BalanceBadge patientId={row.patientId}/></dd></>}{row.notes&&<><dt>Notes</dt><dd>{row.notes}</dd></>}{row.nextAction&&<><dt>Next action</dt><dd>{row.nextAction}</dd></>}{row.overrideReason&&<><dt>Override</dt><dd>{row.overrideReason}</dd></>}</dl>{(row.status==='booked'||row.status==='confirmed')&&+new Date(row.startsAt)>openedAt?<WhatsAppButtons patientId={row.patientId} templates={['appointment_reminder','appointment_confirmation']} target={{appointmentId:row.id}}/>:row.status==='no_show'?<WhatsAppButtons patientId={row.patientId} templates={['missed_appointment']} target={{appointmentId:row.id}}/>:null}
   {error&&<p role="alert" className="staff-error">{error.message}</p>}
   {canWrite&&next.length>0&&<div className="appt-actions">{next.map(s=><button key={s} type="button" className={s==='cancelled'||s==='no_show'?'secondary danger':''} disabled={busy} onClick={()=>change(s)}>{actionLabels[s]??statusLabels[s]}</button>)}</div>}
   {pending&&<div className="note-box"><label>{pending==='cancelled'?'Reason for cancelling':'What happened?'}<input value={note} onChange={e=>setNote(e.target.value)} minLength={3} maxLength={500} autoFocus/></label><button type="button" disabled={busy||note.trim().length<3} onClick={()=>change(pending)}>Confirm: {statusLabels[pending]}</button><button type="button" className="secondary" onClick={()=>setPending(null)}>Back</button></div>}
@@ -176,7 +181,7 @@ function AppointmentPanel({row,settings,procedures,onClose,onChanged}:{row:Appoi
 function Reschedule({row,settings,onSaved}:{row:Appointment;settings:Settings;onSaved:(message:string)=>void}){
  const {busy,error,send}=useCommand();const tz=settings.timezone;const formRef=useRef<HTMLFormElement>(null);const length=useMemo(()=>Math.round((+new Date(row.endsAt)-+new Date(row.startsAt))/60000),[row]);const [minutes,setMinutes]=useState(length);
  const procedure=row.procedureId?{id:row.procedureId,name:row.procedureName??'the procedure',defaultMinutes:length}:null;
- function submit(override:string|null){const form=formRef.current;if(!form)return;const v=formValues(form);const startsAt=zonedInstant(tz,v.date,v.time);void send('/api/v1/appointments/'+row.id+'/reschedule','POST',{expectedVersion:row.version,startsAt:startsAt.toISOString(),endsAt:new Date(+startsAt+minutes*60000).toISOString(),dentistId:v.dentistId,chairId:v.chairId,note:String(new FormData(form).get('note')??''),override:override?{reason:override}:null},()=>onSaved(`Moved to ${v.date} ${v.time}. Confirm the new time with the patient.`));}
+ function submit(override:string|null){const form=formRef.current;if(!form)return;const v=formValues(form);const startsAt=zonedInstant(tz,v.date,v.time);void send('/api/v1/appointments/'+row.id+'/reschedule','POST',{expectedVersion:row.version,startsAt:startsAt.toISOString(),endsAt:new Date(+startsAt+minutes*60000).toISOString(),dentistId:v.dentistId,chairId:v.chairId,note:String(new FormData(form).get('note')??''),override:override?{reason:override}:null},()=>onSaved(`Moved to ${clinicDate(v.date)} ${v.time}. Confirm the new time with the patient.`));}
  return <form ref={formRef} className="sub-form" onSubmit={e=>{e.preventDefault();submit(null);}}><h3>Reschedule</h3><div className="form-row"><label>New date<input name="date" type="date" defaultValue={localParts(tz,new Date(row.startsAt)).date} required disabled={busy}/></label><label>New time<input name="time" type="time" step={300} defaultValue={clockOf(tz,row.startsAt)} required disabled={busy}/></label></div>
   <ResourceFields settings={settings} procedures={[]} withProcedure={false} defaults={{dentistId:row.dentistId??'',chairId:row.chairId??''}} disabled={busy}/><DurationField value={minutes} onChange={setMinutes} procedure={procedure} disabled={busy}/>
   <label>Note (optional)<input name="note" maxLength={500} disabled={busy} placeholder="e.g. Patient requested evening"/></label><Override error={error} busy={busy} submit={reason=>submit(reason)}/><button disabled={busy}>{busy?'Saving…':'Move appointment'}</button></form>;

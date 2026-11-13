@@ -1,4 +1,5 @@
 'use client';
+import { patientRef } from '@/lib/display';
 import { clinicDateTime } from '@/lib/time';
 import { useEffect,useRef,useState,type FormEvent } from 'react';
 import { api,scopeHeaders,useClinic } from './session';
@@ -11,7 +12,7 @@ export function Communications(){
  const allowed=can('communication.read')&&can('patient.demographics.read');
  useEffect(()=>{if(!allowed)return;const controller=new AbortController();api(`/api/v1/patients?search=${encodeURIComponent(search)}&limit=50`,{headers:scopeHeaders(scope),signal:controller.signal}).then(data=>{if(!controller.signal.aborted)setPatients(data.patients);}).catch(e=>{if(!controller.signal.aborted)setError(e.message);});return()=>controller.abort();},[search,scope,allowed]);
  if(!allowed)return <section className="staff-workspace live-inner"><h1>Communications</h1><p>Your account needs communication read and patient demographic access.</p></section>;
- return <div className="staff-workspace live-inner"><h1>WhatsApp communications</h1><p>Manage consent and send configured appointment or follow-up templates.</p>{error&&<p role="alert">{error}</p>}<section><label>Find patient<input value={search} onChange={e=>{setSearch(e.target.value);setError('');}} placeholder="Search name, ID or phone"/></label><label>Patient<select value={selected} onChange={e=>setSelected(e.target.value)}><option value="">Select a patient</option>{patients.map(p=><option key={p.id} value={p.id}>{p.name} · {p.displayId}</option>)}</select></label></section>{selected&&<PatientCommunications key={selected} patientId={selected}/>}</div>;
+ return <div className="staff-workspace live-inner"><h1>WhatsApp communications</h1><p>Record each patient’s WhatsApp consent and see automatic messages and their delivery. Automatic sending needs a connected WhatsApp Business account; until then, use the WhatsApp buttons on appointments, patient profiles, receipts and Unpaid balances, which open WhatsApp with the message ready.</p>{error&&<p role="alert">{error}</p>}<section><label>Find patient<input value={search} onChange={e=>{setSearch(e.target.value);setError('');}} placeholder="Search name, ID or phone"/></label><label>Patient<select value={selected} onChange={e=>setSelected(e.target.value)}><option value="">Select a patient</option>{patients.map(p=><option key={p.id} value={p.id}>{p.name} · {patientRef(p.displayId)}</option>)}</select></label></section>{selected&&<PatientCommunications key={selected} patientId={selected}/>}</div>;
 }
 function PatientCommunications({patientId}:{patientId:string}){
  const {scope,can}=useClinic();const [data,setData]=useState<Result|null>(null);const [error,setError]=useState('');const [notice,setNotice]=useState('');const [revision,setRevision]=useState(0);const [offset,setOffset]=useState(0);const [busy,setBusy]=useState(false);const [templateKey,setTemplateKey]=useState('');const operation=useRef<{id:string;payload:string}|null>(null);

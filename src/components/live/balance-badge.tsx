@@ -11,5 +11,5 @@ export function BalanceBadge({patientId}:{patientId:string}){
  if(balance===undefined)return <span className="balance-badge muted loading">Checking balance…</span>;
  if(balance===null)return <span className="balance-badge muted">Balance unavailable</span>;
  const zero=BigInt(0);const label=balance>zero?`Balance due ${moneyMinor(balance.toString())}`:balance<zero?`In credit ${moneyMinor((-balance).toString())}`:'No balance due';
- return <span className={`balance-badge ${balance>zero?'due':''}`}>{label} · <Link href={`/accounts/${patientId}`}>Account</Link></span>;
+ return <Link href={`/accounts/${patientId}`} className={`balance-badge ${balance>zero?'due':''}`} title="Open the patient account">{label}</Link>;
 }

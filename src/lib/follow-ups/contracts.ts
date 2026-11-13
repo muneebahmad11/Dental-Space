@@ -2,7 +2,7 @@ import { z } from 'zod';
 export const followUpTypes=['Post-extraction','RCT review','Crown delivery','Implant review','Suture removal','Orthodontic adjustment','Scaling recall','Periodic check-up','Custom'] as const;
 export const followUpStatuses=['due','contacted','booked','completed','closed','unable_to_reach'] as const;
 export type FollowUpStatus=typeof followUpStatuses[number];
-export const statusLabels:Record<FollowUpStatus,string>={due:'Due',contacted:'Contacted',booked:'Booked',completed:'Completed',closed:'Closed',unable_to_reach:'Unable to Reach'};
+export const statusLabels:Record<FollowUpStatus,string>={due:'Due',contacted:'Contacted',booked:'Booked',completed:'Completed',closed:'Closed',unable_to_reach:'Unable to reach'};
 export function canTransition(from:FollowUpStatus,to:FollowUpStatus){return from!==to&&from!=='completed'&&from!=='closed';}
 export function dueBucket(dueOn:string,today:string){return dueOn<today?'overdue':dueOn===today?'today':'upcoming';}
 const note=z.string().trim().min(3).max(1000);

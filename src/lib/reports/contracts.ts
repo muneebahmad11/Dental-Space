@@ -25,6 +25,7 @@ export type FinanceReport = {
   methods: (CashFlowRow & { method: string })[];
   // Charge reductions posted in the range. They move no money and are not part of the cash totals above.
   creditNotes: { count: number; totalMinor: string };
+  discounts?: { count: number; totalMinor: string };
 };
 
 export function cashFlow(receipts: string, refunds: string, expenses: string): CashFlowRow {

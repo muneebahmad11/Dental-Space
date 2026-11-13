@@ -1,4 +1,5 @@
 'use client';
+import { clinicDate } from '@/lib/time';
 import { useEffect,useRef,useState,type FormEvent } from 'react';
 import { emptyWeek,resourceColors,slotLengths,weekdayLabels,weekdays,type WeeklyHours } from '@/lib/scheduling/contracts';
 import { api,scopeHeaders,useClinic } from './session';
@@ -65,6 +66,6 @@ function Closures({settings,saved}:{settings:Settings;saved:()=>void}){
  const {busy,error,notice,send}=useCommand();const [warning,setWarning]=useState('');
  function add(e:FormEvent<HTMLFormElement>){e.preventDefault();const form=e.currentTarget;const f=new FormData(form);void send('/api/v1/schedule/closures','POST',{closedOn:f.get('closedOn'),reason:f.get('reason')},data=>{form.reset();setWarning(Number(data.existingBookings)>0?`${data.existingBookings} existing booking(s) fall on ${f.get('closedOn')}. Review and reschedule them; they were not cancelled automatically.`:'');saved();},'Closed date added.');}
  return <section><h2>Closed dates</h2><p>Holidays and other days the branch is closed. New bookings are refused on these dates.</p><Feedback error={error} notice={notice}/>{warning&&<p role="alert" className="staff-error">{warning}</p>}
-  {settings.closures.length===0?<p>No upcoming closed dates.</p>:<ul>{settings.closures.map(c=><li key={c.id}><div><strong>{c.closedOn}</strong><p>{c.reason}</p></div>{settings.canConfigure&&<button className="secondary" disabled={busy} onClick={()=>send(`/api/v1/schedule/closures/${c.id}`,'PATCH',{expectedVersion:c.version},saved,'Closed date removed; the branch is open on that date again.')}>Reopen date</button>}</li>)}</ul>}
+  {settings.closures.length===0?<p>No upcoming closed dates.</p>:<ul>{settings.closures.map(c=><li key={c.id}><div><strong>{clinicDate(c.closedOn)}</strong><p>{c.reason}</p></div>{settings.canConfigure&&<button className="secondary" disabled={busy} onClick={()=>send(`/api/v1/schedule/closures/${c.id}`,'PATCH',{expectedVersion:c.version},saved,'Closed date removed; the branch is open on that date again.')}>Reopen date</button>}</li>)}</ul>}
   {settings.canConfigure&&<details><summary>Add closed date</summary><form onSubmit={add}><label>Date<input name="closedOn" type="date" min={settings.today} required disabled={busy}/></label><label>Reason<input name="reason" required minLength={3} maxLength={200} disabled={busy} placeholder="e.g. Eid holiday"/></label><button disabled={busy}>{busy?'Saving…':'Add closed date'}</button></form></details>}</section>;
 }

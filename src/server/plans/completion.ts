@@ -1,8 +1,8 @@
 import { createHash,randomUUID } from 'node:crypto';
 import { and,eq,sql } from 'drizzle-orm';
 import { z } from 'zod';
-import { completeItemInput,billCompletionInput } from '../../lib/plans/contracts.ts';
-import { businessDate } from '../../lib/finance/contracts.ts';
+import { completeItemInput,billCompletionInput,discountShare } from '../../lib/plans/contracts.ts';
+import { businessDate,minorToAmount } from '../../lib/finance/contracts.ts';
 import { authorize,resolveContext,type Database } from '../auth/context.ts';
 import { clinics } from '../db/schema/organization.ts';
 import { treatmentPlans,planVersions,treatmentCompletions,treatmentChargeLinks } from '../db/schema/plans.ts';
@@ -36,6 +36,8 @@ export async function billTreatment(db:Database,s:PatientScope,completionId:stri
  const [existing]=await tx.select().from(treatmentChargeLinks).where(eq(treatmentChargeLinks.completionId,completionId));if(existing)throw new AppError(409,'ALREADY_BILLED','This completed treatment already has a charge. Reload the plan.');
  const [version]=await tx.select().from(planVersions).where(and(eq(planVersions.planId,completion.planId),eq(planVersions.version,completion.version)));const item=version?.snapshot.items.find(item=>item.id===completion.itemId);if(!item)throw new AppError(409,'ESTIMATE_INTEGRITY','The accepted treatment price could not be found.');const amount=BigInt(item.unitPriceMinor)*BigInt(completion.quantity);if(amount>BigInt(99999999))throw new AppError(409,'CHARGE_LIMIT','This completion exceeds the current per-charge limit. Request billing review.');
  const description=`${item.description}${item.tooth?` · ${item.tooth}`:''} · qty ${completion.quantity}`.slice(0,240);
- const charge=await postCharge(tx,s,{operationId:input.operationId,patientId:completion.patientId,description,amount:`${amount/BigInt(100)}.${(amount%BigInt(100)).toString().padStart(2,'0')}`});
+ // The estimate's agreed discount is applied in proportion; it was approved when the estimate was accepted.
+ const share=discountShare(version.snapshot,amount);
+ const charge=await postCharge(tx,s,{operationId:input.operationId,patientId:completion.patientId,description,amount:minorToAmount(amount),...(share>BigInt(0)?{discount:minorToAmount(share),discountReason:`Estimate discount${version.snapshot.discountReason?`: ${version.snapshot.discountReason}`:''}`.slice(0,200)}:{})},{discountApproved:true});
  const [link]=await tx.insert(treatmentChargeLinks).values({clinicId:s.clinicId,branchId:s.branchId,patientId:completion.patientId,completionId,chargeId:charge.id,actorMembershipId:c.membershipId,operationId:input.operationId,payloadHash:hash}).returning();await audit(tx,s,c.membershipId,link.id,'treatment.charge_linked');return {id:link.id,chargeId:charge.id};
  });}

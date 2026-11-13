@@ -19,7 +19,14 @@ export function requireSameOrigin(request: Request) {
   let origin: string;
   try { origin = new URL(process.env.NEXT_PUBLIC_APP_URL || '').origin; }
   catch { throw new AppError(503, 'APP_NOT_CONFIGURED', 'Application origin is not configured.'); }
-  if (request.headers.get('origin') !== origin) throw new AppError(403, 'INVALID_ORIGIN', 'Request origin is not allowed.');
+  // Cross-site request protection: the browser's Origin must be the configured app address or the address this request
+  // was served on (a preview deployment, www vs bare domain, or a local production test). Browsers always send a
+  // foreign site's real origin, so another site still cannot submit here.
+  const sent = request.headers.get('origin');
+  const host = request.headers.get('x-forwarded-host') ?? request.headers.get('host');
+  const proto = request.headers.get('x-forwarded-proto') ?? new URL(request.url).protocol.replace(':', '');
+  const served = host ? `${proto}://${host}` : null;
+  if (!sent || (sent !== origin && sent !== served)) throw new AppError(403, 'INVALID_ORIGIN', 'Request origin is not allowed.');
 }
 export async function jsonBody(request: Request, maximumBytes = 16384): Promise<unknown> {
   if (!request.headers.get('content-type')?.toLowerCase().startsWith('application/json')) throw new AppError(415, 'JSON_REQUIRED', 'Send a JSON request.');
