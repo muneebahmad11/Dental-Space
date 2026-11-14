@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { connectionOptions, migrationEnvironment, requireLocalDatabase, runtimeEnvironment, supabaseEnvironment } from '../src/lib/config/environment.ts';
+import { connectionOptions, migrationEnvironment, requireLocalDatabase, requireLocalUnlessRemoteFlag, runtimeEnvironment, supabaseEnvironment } from '../src/lib/config/environment.ts';
 const runtime = 'postgresql://clinic_runtime:test-password@127.0.0.1:54329/dental_local';
 test('runtime accepts its restricted role and rejects admin credentials', () => {
   assert.equal(runtimeEnvironment({ DATABASE_URL: runtime }).DATABASE_URL, runtime);
@@ -22,4 +22,13 @@ test('remote migration targets are refused and remote runtime TLS is verified', 
 test('Supavisor runtime role names are accepted without permitting admin roles', () => {
   assert.doesNotThrow(() => runtimeEnvironment({ DATABASE_URL: runtime.replace('clinic_runtime', 'clinic_runtime.projectref') }));
   assert.throws(() => runtimeEnvironment({ DATABASE_URL: runtime.replace('clinic_runtime', 'postgres.projectref') }), /restricted/);
+});
+test('a supplied database authority keeps full verification, and remote scripts need an explicit flag', () => {
+  const remote = runtime.replace('127.0.0.1', 'example.supabase.com');
+  const pem = '-----BEGIN CERTIFICATE-----\\nabc\\n-----END CERTIFICATE-----';
+  assert.deepEqual(connectionOptions(remote, { DATABASE_CA_CERT: pem }).ssl, { ca: '-----BEGIN CERTIFICATE-----\nabc\n-----END CERTIFICATE-----', rejectUnauthorized: true });
+  assert.equal(connectionOptions(remote, {}).ssl, 'verify-full');
+  assert.equal(connectionOptions(runtime, { DATABASE_CA_CERT: pem }).ssl, false);
+  assert.throws(() => requireLocalUnlessRemoteFlag(remote, []), /refuses remote/);
+  assert.doesNotThrow(() => requireLocalUnlessRemoteFlag(remote, ['--remote']));
 });

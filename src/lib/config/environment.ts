@@ -29,6 +29,13 @@ export function migrationEnvironment(values: Record<string, string | undefined>)
 export function supabaseEnvironment(values: Record<string, string | undefined>) { return parse(supabaseSchema, values); }
 export function isLocalDatabase(value: string) { return ['localhost', '127.0.0.1', '[::1]'].includes(new URL(value).hostname); }
 export function requireLocalDatabase(value: string) { if (!isLocalDatabase(value)) throw new Error('This local preparation command refuses remote database targets.'); }
-export function connectionOptions(value: string) {
-  return { prepare: false, max: 3, idle_timeout: 20, connect_timeout: 10, ssl: isLocalDatabase(value) ? false as const : 'verify-full' as const };
+// Remote targets need an explicit --remote flag, so a mistyped URL never migrates or rewrites a hosted database by accident.
+export function requireLocalUnlessRemoteFlag(value: string, argv: string[]) { if (!argv.includes('--remote')) requireLocalDatabase(value); }
+// Hosted Postgres such as Supabase signs its certificates with its own root authority, which Node does not ship.
+// DATABASE_CA_CERT supplies that root (PEM; literal \n allowed) so the server certificate and host name are still fully verified.
+function trustedAuthority(env: Record<string, string | undefined>) { const pem = env.DATABASE_CA_CERT?.replace(/\\n/g, '\n').trim(); return pem ? pem : undefined; }
+export function connectionOptions(value: string, env: Record<string, string | undefined> = process.env) {
+  const ca = trustedAuthority(env);
+  const ssl = isLocalDatabase(value) ? false as const : ca ? { ca, rejectUnauthorized: true } : 'verify-full' as const;
+  return { prepare: false, max: 3, idle_timeout: 20, connect_timeout: 10, ssl };
 }
