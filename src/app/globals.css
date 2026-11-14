@@ -793,3 +793,53 @@ span.loading { display: inline-flex; gap: 6px; }
 .fu-history .fu-facts { color: var(--ink) !important; }
 @media (max-width: 1100px) { .followup-layout.with-panel { grid-template-columns: minmax(0, 1fr); } .followup-panel { position: static; max-height: none; } }
 @media (max-width: 640px) { .followup-table th:nth-child(2), .followup-table td:nth-child(2) { display: none; } }
+
+/* ---------- Estimate editor ---------- */
+.staff-workspace .estimate-card h2 .tag { vertical-align: middle; margin-left: 6px; font-size: 12px; }
+.patient-chooser { margin-bottom: 16px; }
+.picker-results { list-style: none; padding: 0 !important; margin: -6px 0 0 !important; border: 1px solid var(--rule); border-radius: var(--radius-md); overflow: hidden; }
+.staff-workspace .picker-results li { padding: 0; border-bottom: 1px solid var(--rule); display: block; }
+.staff-workspace .picker-results li:last-child { border-bottom: 0; }
+.staff-workspace .picker-results li.muted { padding: 10px 14px; }
+.staff-workspace .picker-results button { width: 100%; margin: 0; display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 10px 14px; border: 0; border-radius: 0; background: var(--paper); color: var(--ink); font-weight: 400; text-align: left; }
+.staff-workspace .picker-results button:hover:not(:disabled) { background: var(--hover); }
+.picker-results small, .patient-chip small { color: var(--ink-3); font-size: 12.5px; }
+.patient-chip { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; margin-bottom: 16px; border: 1px solid var(--rule); border-radius: var(--radius-md); background: var(--sunk); }
+.patient-chip div { display: flex; align-items: baseline; gap: 10px; }
+.estimate-editor .estimate-title { max-width: 520px; }
+.estimate-items { margin-bottom: 8px; }
+.staff-workspace .estimate-items th { font-size: 12.5px; }
+.staff-workspace .estimate-items td { padding: 6px 6px; vertical-align: middle; }
+.staff-workspace .estimate-items tbody tr:hover td { background: none; }
+.staff-workspace .estimate-items input { padding: 8px 10px; }
+.estimate-items .tooth-cell { width: 120px; }
+.estimate-items .qty-cell { width: 80px; }
+.estimate-items .price-cell { width: 140px; }
+.staff-workspace .estimate-items .qty-cell input, .staff-workspace .estimate-items .price-cell input { text-align: right; font-variant-numeric: tabular-nums; }
+.estimate-items .line-amount { width: 130px; font-weight: 700; }
+.estimate-items .remove-cell { width: 44px; text-align: right; }
+.staff-workspace button.icon-button { margin: 0; width: 34px; height: 34px; padding: 0; display: inline-grid; place-items: center; background: none; border: 1px solid transparent; color: var(--ink-3); }
+.staff-workspace button.icon-button:hover:not(:disabled) { background: var(--alert-soft); color: var(--alert); border-color: transparent; }
+.staff-workspace button.icon-button:disabled { opacity: .3; }
+.staff-workspace button.add-row { margin: 2px 0 18px; gap: 6px; background: none; color: var(--accent); border: 1px dashed var(--rule-strong); }
+.staff-workspace button.add-row:hover:not(:disabled) { background: var(--accent-soft); border-color: var(--accent); }
+.estimate-bottom { display: grid; grid-template-columns: minmax(0, 1fr) minmax(240px, 320px); gap: 24px; align-items: start; padding-top: 16px; border-top: 1px solid var(--rule); }
+.estimate-summary { border: 1px solid var(--rule); border-radius: var(--radius-md); background: var(--sunk); padding: 14px 16px; display: grid; gap: 8px; }
+.estimate-summary > div { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; color: var(--ink-2); }
+.estimate-summary strong { color: var(--ink); font-variant-numeric: tabular-nums; }
+.estimate-summary .total { padding-top: 10px; border-top: 1px solid var(--rule-strong); font-size: 15px; color: var(--ink); font-weight: 700; }
+.estimate-summary .total strong { font-size: 22px; color: var(--accent); }
+.estimate-summary .staff-error { margin: 0; }
+.form-actions { display: flex; align-items: center; gap: 12px; margin-top: 18px; }
+.staff-workspace .form-actions button { margin: 0; }
+.acceptance-box { margin-top: 18px; padding: 16px 18px; border-radius: var(--radius-md); border: 1px solid var(--rule); background: var(--sunk); }
+.staff-workspace .acceptance-box h3 { margin-top: 0; }
+@media (max-width: 760px) {
+  .estimate-bottom { grid-template-columns: 1fr; }
+  .estimate-items .tooth-cell, .estimate-items .price-cell { width: auto; }
+}
+.estimate-items td:first-child { min-width: 220px; }
+.estimate-items .tooth-cell { width: 92px; }
+.estimate-items .qty-cell { width: 72px; }
+.estimate-items .price-cell { width: 124px; }
+.estimate-items .line-amount { width: 120px; white-space: nowrap; }
