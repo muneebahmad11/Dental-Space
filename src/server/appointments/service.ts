@@ -5,7 +5,7 @@ import { appointmentQuery, bookingInput, canTransition, detailsInput, occupyingS
 import { localParts, openingCheck } from '../../lib/scheduling/contracts.ts';
 import { authorize, resolveContext, type Database, type StaffContext } from '../auth/context.ts';
 import { appointmentEvents, appointments } from '../db/schema/appointments.ts';
-import { appUsers, memberships } from '../db/schema/organization.ts';
+import { appUsers, branches, memberships } from '../db/schema/organization.ts';
 import { patients } from '../db/schema/patients.ts';
 import { procedures } from '../db/schema/procedures.ts';
 import { scheduleChairs, scheduleDentists } from '../db/schema/scheduling.ts';
@@ -80,6 +80,20 @@ async function slotProblems(db:Database,scope:PatientScope,slot:Slot) {
   if(dentist) problems.push(slot.dentistId?`The dentist already has a booking at ${describe(dentist)}.`:`The branch calendar already has a booking at ${describe(dentist)}.`);
   if(slot.chairId) { const [chair]=await overlapping(eq(appointments.chairId,slot.chairId)); if(chair) problems.push(`The chair is already booked at ${describe(chair)}.`); }
   const [patient]=await overlapping(eq(appointments.patientId,slot.patientId)); if(patient) problems.push(`This patient already has a booking at ${describe(patient)}.`);
+  // The clinic's other branches: a doctor works at more than one, and patients are shared, so a clash there counts too.
+  // A doctor has one calendar per branch; they are the same person when the names match or both are linked to the same staff login.
+  const elsewhere=(extra:SQL)=>db.select({startsAt:appointments.startsAt,endsAt:appointments.endsAt,branchName:branches.name}).from(appointments)
+    .innerJoin(branches,and(eq(branches.id,appointments.branchId),eq(branches.clinicId,appointments.clinicId)))
+    .where(and(eq(appointments.clinicId,scope.clinicId),ne(appointments.branchId,scope.branchId),inArray(appointments.status,[...occupyingStatuses]),lt(appointments.startsAt,slot.endsAt),gt(appointments.endsAt,slot.startsAt),extra)).orderBy(asc(appointments.startsAt)).limit(1);
+  if(slot.dentistId) {
+    const [doctor]=await db.select({name:scheduleDentists.name,membershipId:scheduleDentists.membershipId}).from(scheduleDentists).where(and(eq(scheduleDentists.clinicId,scope.clinicId),eq(scheduleDentists.id,slot.dentistId)));
+    if(doctor) {
+      const sameDoctor=sql`${appointments.dentistId} in (select d.id from clinic_app.schedule_dentists d where d.clinic_id=${scope.clinicId} and d.branch_id<>${scope.branchId} and (lower(trim(d.name))=lower(trim(${doctor.name})) or (${doctor.membershipId}::uuid is not null and d.membership_id=${doctor.membershipId}::uuid)))`;
+      const [away]=await elsewhere(sameDoctor);
+      if(away) problems.push(`${doctor.name} already has an appointment at ${away.branchName} at ${describe(away)}.`);
+    }
+  }
+  const [patientAway]=await elsewhere(eq(appointments.patientId,slot.patientId)); if(patientAway) problems.push(`This patient already has an appointment at ${patientAway.branchName} at ${describe(patientAway)}.`);
   const opening=openingCheck(rules.hours,rules.closedDates,rules.timezone,slot.startsAt,slot.endsAt);
   if(opening==='closed_date') problems.push('The branch is closed on this date.'); else if(opening==='outside_hours') problems.push('This time is outside opening hours.');
   return problems;

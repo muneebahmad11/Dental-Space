@@ -89,13 +89,21 @@ try{try{await drizzle(client).transaction(async tx=>{
  const other={...desk,branchId:second.id};assert.equal((await listAppointments(tx,other,{startsAt:at(future,'00:00'),endsAt:at(day(8),'00:00')})).length,0);
  await assert.rejects(changeAppointmentStatus(tx,other,sara2.id,{operationId:op(),expectedVersion:detailed.version,status:'confirmed'}),status(404));await assert.rejects(appointmentHistory(tx,other,sara2.id),status(404));
  await assert.rejects(bookAppointment(tx,other,{operationId:op(),patientId:amina.id,dentistId:drA,...slot(future,'09:00','09:30')}),status(404,'DENTIST_UNAVAILABLE'));
+ // Across branches: the same doctor (same name in the other branch's calendar) or the same patient booked at the same time is a clash too.
+ const away=day(10);const adminSecond={...admin,branchId:second.id};const deskSecond={...desk,branchId:second.id};
+ await saveOpeningHours(tx,adminSecond,{operationId:op(),expectedVersion:0,slotMinutes:15,weeklyHours:{'1':open,'2':open,'3':open,'4':open,'5':open,'6':open,'7':open}});
+ const drBThere=(await createScheduleResource(tx,adminSecond,{kind:'dentist',operationId:op(),name:'dr. b ',color:'#6784a7'})).id;const drC=(await createScheduleResource(tx,adminSecond,{kind:'dentist',operationId:op(),name:'Dr. C',color:'#3f7f3a'})).id;
+ await bookAppointment(tx,desk,{operationId:op(),patientId:amina.id,dentistId:drB,...slot(away,'12:00','12:30')});
+ await assert.rejects(bookAppointment(tx,deskSecond,{operationId:op(),patientId:amina.id,dentistId:drC,...slot(away,'12:00','12:30')}),(e:unknown)=>e instanceof AppError&&e.code==='SLOT_CONFLICT'&&e.message.includes('This patient already has an appointment at Main branch at 12:00–12:30.'));
+ await assert.rejects(bookAppointment(tx,deskSecond,{operationId:op(),patientId:omar.id,dentistId:drBThere,...slot(away,'12:15','12:45')}),(e:unknown)=>e instanceof AppError&&e.code==='SLOT_CONFLICT'&&e.message.includes('dr. b already has an appointment at Main branch at 12:00–12:30.'));
+ await bookAppointment(tx,deskSecond,{operationId:op(),patientId:omar.id,dentistId:drC,...slot(away,'12:00','12:30')});
  // Audit failure rolls back the booking; history is immutable.
  await tx.execute(sql`reset role`);await tx.execute(sql`revoke insert on clinic_app.audit_events from clinic_runtime`);await tx.execute(sql`set local role clinic_runtime`);
  await assert.rejects(bookAppointment(tx,desk,{operationId:op(),patientId:amina.id,dentistId:drB,...slot(future,'16:00','16:30')}));
  await tx.execute(sql`reset role`);await tx.execute(sql`grant insert on clinic_app.audit_events to clinic_runtime`);
- const count=await tx.execute<{count:string}>(sql`select count(*)::text as count from clinic_app.appointments where clinic_id=${clinic.id}`);assert.equal(count[0].count,'9');
+ const count=await tx.execute<{count:string}>(sql`select count(*)::text as count from clinic_app.appointments where clinic_id=${clinic.id}`);assert.equal(count[0].count,'11');
  for(const query of [sql`update clinic_app.appointment_events set detail='{}'::jsonb where clinic_id=${clinic.id}`,sql`delete from clinic_app.appointment_events where clinic_id=${clinic.id}`,sql`truncate clinic_app.appointment_events`])await assert.rejects(tx.transaction(async nested=>{await nested.execute(query);}));
  await tx.execute(sql`delete from clinic_app.membership_grants where permission='appointment.write' and clinic_id=${clinic.id}`);await tx.execute(sql`set local role clinic_runtime`);
  await assert.rejects(registerWalkIn(tx,desk,{...walkIn,operationId:op()}),status(403));
  throw rollback;
- });}catch(e){if(e!==rollback)throw e;}console.log('Appointment lifecycle integration passed: dentist/chair/patient/hours/closure conflicts, audited overrides, controlled durations, full status flow and corrections, rescheduling history, details, walk-ins, visit start, branch isolation, immutable history and audit rollback. Fixtures rolled back.');}catch(e){console.error('Appointment lifecycle integration failed.',e instanceof assert.AssertionError?e.message:e instanceof AppError?`${e.code}: ${e.message}`:e);process.exitCode=1;}finally{await client.end();}
+ });}catch(e){if(e!==rollback)throw e;}console.log('Appointment lifecycle integration passed: dentist/chair/patient/hours/closure conflicts within and across branches, audited overrides, controlled durations, full status flow and corrections, rescheduling history, details, walk-ins, visit start, branch isolation, immutable history and audit rollback. Fixtures rolled back.');}catch(e){console.error('Appointment lifecycle integration failed.',e instanceof assert.AssertionError?e.message:e instanceof AppError?`${e.code}: ${e.message}`:e);process.exitCode=1;}finally{await client.end();}
