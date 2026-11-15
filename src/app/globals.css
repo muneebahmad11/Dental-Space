@@ -1099,3 +1099,7 @@ body { font-size: 15px; font-feature-settings: "tnum" 1, "ss01" 1; }
   .staff-workspace .side-links a { transition: background-color .15s, transform .15s var(--ease-out); }
   .staff-workspace .side-links a:hover { transform: translateX(3px); }
 }
+/* the branch picker must look like one: a dropdown arrow and a hover state */
+.clinic-label select { appearance: none; -webkit-appearance: none; margin-top: 4px; padding: 5px 26px 5px 9px; border-radius: 10px; background: #30332b url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23d8f06c' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 8px center; color: #f5f7f2; font-weight: 500; }
+.clinic-label select:hover { background-color: #3a3e34; }
+.clinic-label select:focus-visible { outline: 2px solid var(--lime); outline-offset: 1px; }
