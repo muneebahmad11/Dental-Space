@@ -18,6 +18,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "node --experimental-strip-types scripts/migrate.ts",
     "db:branches": "node --experimental-strip-types scripts/branches.ts",
+    "db:copy-clinic": "node --experimental-strip-types --conditions=react-server scripts/copy-clinic.ts",
     "db:prepare-runtime": "node --experimental-strip-types scripts/prepare-runtime.ts",
     "env:check": "node --experimental-strip-types scripts/validate-env.ts",
     "test:env": "node --experimental-strip-types --test tests/environment.test.ts",
