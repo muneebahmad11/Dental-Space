@@ -7,8 +7,10 @@ import { migrationEnvironment, runtimeEnvironment, requireLocalDatabase } from '
 
 const bin = process.env.POSTGRES_BIN ?? '/opt/homebrew/opt/postgresql@17/bin';
 const root = resolve('.local'); const data = resolve(root, 'postgres'); const socket = resolve(root, 'pgsocket');
+// Newer macOS releases stop PostgreSQL at startup ("postmaster became multithreaded") unless a locale is set.
+const withLocale = (env: NodeJS.ProcessEnv) => ({ ...env, LC_ALL: env.LC_ALL || 'en_US.UTF-8', LANG: env.LANG || 'en_US.UTF-8' });
 function run(name: string, args: string[], extraEnv: NodeJS.ProcessEnv = process.env) {
-  const result = spawnSync(resolve(bin, name), args, { env: extraEnv, encoding: 'utf8' });
+  const result = spawnSync(resolve(bin, name), args, { env: withLocale(extraEnv), encoding: 'utf8' });
   if (result.status !== 0) throw new Error(`${name} failed. Review .local/postgres.log if the server could not start.`);
 }
 try {
